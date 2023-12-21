@@ -1,0 +1,17 @@
+{%- macro header(f) -%}
+
+{{f.data_type}} {{f.name}}(
+
+{%- for p in f.parameters() %}
+{{p.data_type}}{{" "}} {#- primer kako se moze eksplicitno uneti prazno mesto -#}  
+{%- if not p.passing_by_value -%}
+* 
+{%- endif -%}
+{{p.name}}
+{%- if not loop.last -%}
+,{{" "}}   
+{%- endif -%}
+{%- endfor -%})
+{%- endmacro %}
+
+

@@ -1,0 +1,32 @@
+// generated using template: main_block.template
+//---------------------------------------------------------------------------------
+
+{% if main.do_main %}
+int main(int argc, char *argv[])
+{
+
+{% for var in main.varijable_za_deklarisat %}
+	{% if var.value %}
+    {{var.data_type}} {{ var.name}} = {{ var.value}};
+	{% else %}
+    {{var.data_type}} {{ var.name}};
+	{% endif %}
+{% endfor %}
+
+{% for call in main.calling_sequence %}
+   {{main._elements[call.result].data_type}} {{ call.result}};
+   {{ call.result}} = {{call.function.name}} (
+   {%- for prm in call.param_values -%}
+   	  {%- if not main._elements[call.function.name]._parameters[loop.index - 1].passing_by_value -%}
+      &
+      {%- endif -%}
+
+      {{prm}}
+      {%- if not loop.last -%}
+         ,{{" "}}
+      {%- endif -%}
+   {%- endfor -%});
+{% endfor %}
+
+}
+{%- endif -%}

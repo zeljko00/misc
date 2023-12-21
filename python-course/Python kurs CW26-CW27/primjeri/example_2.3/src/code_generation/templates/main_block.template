@@ -1,0 +1,10 @@
+// generated using template: main_block.template
+//---------------------------------------------------------------------------------
+
+
+int main(int argc, char *argv[])
+{
+{% for f in functions %}
+    {{f.name}}();
+{% endfor %}
+}

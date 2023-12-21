@@ -1,0 +1,11 @@
+// generated using template: functions.template
+//---------------------------------------------------------------------------------
+{% set template = "utils.template" %}
+{% from template import header %}
+
+{% for f in functions %}
+{{header(f)}} {
+
+}
+
+{% endfor %}

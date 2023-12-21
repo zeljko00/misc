@@ -1,0 +1,5 @@
+@ECHO OFF
+python.exe "%1" 
+echo. 
+PAUSE 
+@ECHO ON 

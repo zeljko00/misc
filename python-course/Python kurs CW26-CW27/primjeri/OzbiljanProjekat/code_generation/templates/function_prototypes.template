@@ -1,0 +1,9 @@
+// generated using template: function_prototypes.template
+//---------------------------------------------------------------------------------
+{% set template = "utils.template" %}
+{% from template import header with context %}
+
+{% for f in main.functions() %}
+{{header(f)}};
+
+{% endfor %}

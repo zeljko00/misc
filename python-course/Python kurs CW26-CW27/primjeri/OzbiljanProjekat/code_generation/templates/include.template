@@ -1,0 +1,7 @@
+// generated using template: include.template
+//---------------------------------------------------------------------------------
+
+{% for incl in main.includes() %}
+#include <{{incl}}>
+{% endfor %}
+ 

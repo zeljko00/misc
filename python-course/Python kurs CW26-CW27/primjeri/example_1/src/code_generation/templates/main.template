@@ -1,0 +1,20 @@
+// generated using template: main.template
+//---------------------------------------------------------------------------------
+
+/*********************************************************************************
+**
+**  Module Name: main.c
+**  Description:
+**            Main file
+** 
+**  Author: {{author}}
+**  Date:   {{date}}
+**********************************************************************************
+
+{#    ---- comment - won't be generated  ---  #}
+
+int main(int argc, char *argv[])
+{
+// To be implemented...
+
+}

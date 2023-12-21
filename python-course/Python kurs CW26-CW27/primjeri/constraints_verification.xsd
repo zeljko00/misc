@@ -1,0 +1,1091 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	version="1.0.0">
+  <xs:simpleType name="booleanType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type used for representation of boolean values. Boolean value can be specified in two ways:
+  		 
+  		  * using True or False string values (or lowercased: true, false)
+  		  * using hexadecimal format with 0x prefix:
+  		  
+  		   * 0x1 (True)
+  		   * 0x0 (False)
+  		</xs:documentation>
+  	</xs:annotation>
+  	<xs:restriction base="xs:string">
+  		<xs:pattern value="[tT][rR][uU][eE]"></xs:pattern>
+  		<xs:pattern value="[fF][aA][lL][sS][eE]"></xs:pattern>
+  		<xs:pattern value="0[xX][0-9a-fA-F]+" />
+  	</xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="timeType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type used for representation of numbers where physical unit is one of time units:
+  		 
+  		  * s (second): e.g. 15s
+  		  * ms (millisecond): e.g. 15 ms
+  		  * us (microsecond): e.g. 15 us
+  		  * ns (nanosecond): e.g. 15 ns
+  		</xs:documentation>
+  	</xs:annotation>
+  	<xs:restriction base="xs:string">
+  		<xs:pattern value="[0-9]+(\.[0-9]+)?[ ]?(s|ms|us|ns)"></xs:pattern>
+  	</xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="logLevels">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Supported logging levels
+  		</xs:documentation>
+  	</xs:annotation>
+  	<xs:restriction base="xs:string">
+  		<xs:pattern value="error"/>
+  		<xs:pattern value="warning"/>
+  	</xs:restriction>
+  </xs:simpleType>
+  
+  <xs:element name="verification" type="verificationType">
+    <xs:annotation>
+      <xs:documentation>
+       Root element of verification mapping file.
+	  </xs:documentation>
+    </xs:annotation>
+    <xs:unique name="uniqueRequirementId">
+		<xs:selector xpath="group/requirement"/>
+		<xs:field xpath="@id"/>
+    </xs:unique>
+    <xs:unique name="uniqueGroupId">
+		<xs:selector xpath="group"/>
+		<xs:field xpath="@id"/>
+    </xs:unique>
+  </xs:element>
+  
+  <xs:complexType name="importType" mixed="true">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type used to specify the file that contains additional variables that will be used in this file.
+  		 File can be either another Verification file, or device configuration file (in either bin or xml format).
+  		 In case if it is device configuration file that is imported, device attribute is mandatory
+  		 
+  		 Attributes:
+  		 
+  		  * file - Either Verification xml file or device interface file
+  		  * device - file that contains concrete device configuration data. Only used when device config is imported.
+  		</xs:documentation>
+  	</xs:annotation>
+    <xs:attribute type="xs:string" name="file" use="required"/>
+    <xs:attribute type="xs:string" name="device" use="optional"/>
+  </xs:complexType>
+  
+  <xs:complexType name="itemType" mixed="true">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type used to specify one element of complex variable. Item holds information of the name of extracted data
+  		 and also it holds information how to import data from XML elements. Item will form one column of the table
+  		 where table is generalized with complex variable.
+  		 
+  		 Attributes:
+  		 
+  		  * name - name of the column where extracted data will be stored
+  		  * importerValue - expression which can be formed by referencing items from current variable, items from other variables and xPath expressions
+  		  * importerStringToNumber - indicates that evaluated value needs to be converted to number
+  		  * importedDefault - expression which can be formed by referencing items from current variable, items from other variables and xPath expressions. This value will be used in case evaluated expression in importerValue does not return any data
+  		  * importerPattern - regular expression for extracting part of the evaluated importerValue. Example: if value is in form "NAME_1" and if we want to extract only number then pattern can be specified as: ^[a-zA-Z].+_([0-9].+)
+  		  * importerIsArray - indicates that evaluated importerValue is array
+  		  * importerPatternIndex - represents number of pattern matching rule. In case importerPattern used on value evaluated from importerValue returns more than one match
+  		</xs:documentation>
+  	</xs:annotation>
+    <xs:sequence>
+      <xs:element type="entryType" name="entry" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="name" use="required"/>
+    <xs:attribute type="xs:string" name="importerValue" use="optional"/>
+    <xs:attribute type="booleanType" name="importerStringToNumber" use="optional"/>
+    <xs:attribute type="xs:string" name="importerDefault" use="optional"/>
+    <xs:attribute type="xs:string" name="importerPattern" use="optional"/>
+    <xs:attribute type="booleanType" name="importerIsArray" use="optional"/>
+    <xs:attribute type="xs:byte" name="importerPatternIndex" use="optional"/>
+  </xs:complexType>
+  
+  <xs:complexType name="variableType" mixed="true">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Element which represents complex variable. Complex variable has form of table where every row contains data for every item. Additionally row of the table can be paired with given key
+  		 
+  		 Attributes:
+  		 
+  		  * name - name of the variable
+  		  * source - represents source files type from which data will be extracted
+  		  * importerPath - xPath to XML element of source file which will be used as a root for extracting data
+  		  * importerKey - expression which can be formed by referencing items from current variable, items from other variables and xPath expressions. xPath elements are evaluated relatively to local root XML element given by importerPath
+  		</xs:documentation>
+  	</xs:annotation>
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="itemType" name="item"/>
+      <xs:element type="functionType" name="function"/>
+      <xs:element type="enumType" name="enum"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="name" use="optional"/>
+    <xs:attribute type="xs:string" name="importerKey" use="optional"/>
+  </xs:complexType>
+  
+  <xs:complexType name="entryType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type used for specifying one element of enumeration.
+  		 
+  		 Attributes:
+  		 
+  		  * importerKey - key of enumeration entry
+  		  * importerValue - expression which can be formed by referencing items from current variable, items from other variables and xPath expressions
+  		</xs:documentation>
+  	</xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="importerKey" use="required"/>
+        <xs:attribute type="xs:string" name="importerValue" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  
+  <xs:complexType name="pairType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type used for specifying one element of enumeration.
+  		 
+  		 Attributes:
+  		 
+  		  * key - key of enumeration entry
+  		  * value - expression which can be formed by referencing items from current variable, items from other variables and xPath expressions
+  		</xs:documentation>
+  	</xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="key" use="required"/>
+        <xs:attribute type="xs:string" name="value" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  
+  <xs:complexType name="enumType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type used for specifying enumerations. Enumeration is special type of item in complex variable
+  		 
+  		 Attributes:
+  		 
+  		  * name - name of the enumeration
+  		</xs:documentation>
+  	</xs:annotation>
+    <xs:sequence>
+      <xs:element type="entryType" name="entry" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="name" use="required"/>
+  </xs:complexType>
+  
+  <xs:complexType name="enumerationType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type used for specifying enumerations which are part of rule.
+  		</xs:documentation>
+  	</xs:annotation>
+    <xs:sequence>
+      <xs:element type="pairType" name="pair" maxOccurs="unbounded" minOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="paramType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type which represents one input parameter of the function.
+  		 
+  		 Attributes:
+  		 
+  		  * importerValue - expression which can be formed by referencing items from current variable, items from other variables and xPath expressions
+  		  * importerStringToNumber - indicates that evaluated value needs to be converted to number
+  		</xs:documentation>
+  	</xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="importerValue" use="required"/>
+        <xs:attribute type="xs:string" name="importerStringToNumber" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  
+  <xs:complexType name="functionType" mixed="true">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type which represents special type of complex variable item. Value of resulting item will be result of evaluating specified function with given parameters
+  		 
+  		 Attributes:
+  		 
+  		  * ref - referenced function
+  		  * name - name of the column where extracted data will be stored
+  		  * importerValue - expression which can be formed by referencing items from current variable, items from other variables and xPath expressions
+  		  * importerStringToNumber - indicates that evaluated value needs to be converted to number
+  		  * importedDefault - expression which can be formed by referencing items from current variable, items from other variables and xPath expressions. This value will be used in case evaluated expression in importerValue does not return any data
+  		  * importerPattern - regular expression for extracting part of the evaluated importerValue. Example: if value is in form "NAME_1" and if we want to extract only number then pattern can be specified as: ^[a-zA-Z].+_([0-9].+)
+  		  * importerIsArray - indicates that evaluated importerValue is array
+  		</xs:documentation>
+  	</xs:annotation>
+    <xs:sequence>
+      <xs:element type="paramType" name="param" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="ref" use="required"/>
+    <xs:attribute type="xs:string" name="name" use="required"/>
+    <xs:attribute type="xs:string" name="importerStringToNumber" use="optional"/>
+    <xs:attribute type="xs:string" name="importerValue" use="optional"/>
+    <xs:attribute type="xs:string" name="importerDefault" use="optional"/>
+    <xs:attribute type="xs:string" name="importerPattern" use="optional"/>
+    <xs:attribute type="xs:string" name="importerIsArray" use="optional"/>
+  </xs:complexType>
+ 
+  <xs:complexType name="errorMessageType">
+  	<xs:annotation>
+  		<xs:documentation>
+  			Contains error message
+  		</xs:documentation>
+  	</xs:annotation>
+  	<xs:simpleContent>
+  		<xs:extension base="xs:string"></xs:extension>
+  	</xs:simpleContent>
+  </xs:complexType>
+  
+  <xs:complexType name="preconditionType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type which represents the pre-condition, that needs to be satisfied in order to check the rule.
+  		 
+  		 Attributes:
+  		 
+  		  * expression - expression which uses variables. Result of the expression should be logical value. 
+  		</xs:documentation>
+  	</xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="expression" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  
+  <xs:complexType name="uniqueTableRuleType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type which represents table's uniqueness check. Uniqueness check is performed on one parameter in defined range of values.
+  		 
+  		 Attributes:
+  		 
+  		  * variable - the name of the variable/table/list or network
+  		  * fromIndex - if uniqueness is not absolute, but starts after index (expression)
+  		  * blockLength - if uniqueness is not absolute, but ends on index (expression)
+  		  * uniqueOn - expression which references on which item uniqueness check is performed
+  		  * id - unique identifier of the check
+  		  * repeat - flag which indicates that uniqueness check is performed on segments in table. Segment is defined with fromIndex and blockLength attributes. First check is performed on defined segment and then segment is shifted in a way that new fromIndex is old fromIndex + blockLength. This procedure will be repeated until there are no more segments.
+  		  * iterateAs - logical name of one entry of table
+  		</xs:documentation>
+  	</xs:annotation>
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="preconditionType" name="precondition"/>
+      <xs:element type="errorMessageType" name="errorMessage"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="variable" use="required"/>
+    <xs:attribute type="xs:string" name="id" use="optional"/>
+    <xs:attribute type="xs:string" name="fromIndex" use="required"/>
+    <xs:attribute type="xs:string" name="blockLength" use="required"/>
+    <xs:attribute type="xs:string" name="uniqueOn" use="required"/>
+    <xs:attribute type="xs:string" name="repeat" use="optional"/>
+    <xs:attribute type="xs:string" name="iterateAs" use="optional"/>
+  </xs:complexType>
+  
+  <xs:complexType name="memoryRuleType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type which represents memory check. It is used for checking if there are enough memory allocated for configured critical and non-critical traffic.
+  		 
+  		 Attributes:
+  		 
+  		  * variable - expression which provides value which will be compared against calculated memory size
+  		  * portsTable - name of the table which holds information about buffers
+  		  * queueLength - expression which holds information about size of queuing buffer
+  		  * maxSizeQueuing - expression which holds information about maximum size of queuing buffer
+  		  * queuingPrecondition - precondition expression used to checking if entry in port table is queuing entry
+  		  * maxSizeSampling - expression which holds information about maximum size of sampling buffer
+  		  * samplingPrecondition - precondition expression used to checking if entry in port table is sampling entry
+  		  * memoryScale - expression which holds information about scale which is used as multiplication factor for variable expression
+  		  * numberOfPartitions - expression which holds information about number of partitions
+  		  * zeroBased - flag which indicates if memory value uses zero-based format (in case it is True, one will be added to variable value)
+  		  * id - unique identifier of the check
+  		  * iteratePortTableAs - logical name of port table entry
+  		</xs:documentation>
+  	</xs:annotation>
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="preconditionType" name="precondition"/>
+      <xs:element type="errorMessageType" name="errorMessage"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="variable" use="required"/>
+    <xs:attribute type="xs:string" name="id" use="optional"/>
+    <xs:attribute type="xs:string" name="portsTable" use="required"/>
+    <xs:attribute type="xs:string" name="queueLength" use="required"/>
+    <xs:attribute type="xs:string" name="maxSizeQueuing" use="required"/>
+    <xs:attribute type="xs:string" name="queuingPrecondition" use="required"/>
+    <xs:attribute type="xs:string" name="maxSizeSampling" use="required"/>
+    <xs:attribute type="xs:string" name="samplingPrecondition" use="required"/>
+    <xs:attribute type="xs:string" name="memoryScale" use="required"/>
+    <xs:attribute type="xs:string" name="numberOfPartitions" use="required"/>
+    <xs:attribute type="booleanType" name="zeroBased" use="optional"/>
+    <xs:attribute type="xs:string" name="iteratePortTableAs" use="optional"/>
+  </xs:complexType>
+  
+  <xs:complexType name="tableOrderRuleType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type which represents check if table is ordered.
+  		 
+  		 Attributes:
+  		 
+  		  * variable - the name of the variable/table/list or network
+  		  * orderBy - expression which references parameter which will be used for order check
+  		  * direction - ordering direction (asc or desc)
+  		  * overlapping - true if values of the ordering column can have equal values
+  		  * fromIndex - for local ordering
+  		  * blockLength - for local ordering
+  		  * id - unique identifier of the check
+  		  * iterateAs - logical name of one entry of table
+  		</xs:documentation>
+  	</xs:annotation>
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="preconditionType" name="precondition"/>
+      <xs:element type="enumerationType" name="enumeration"/>
+      <xs:element type="errorMessageType" name="errorMessage"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="variable" use="required"/>
+    <xs:attribute type="xs:string" name="id" use="optional"/>
+    <xs:attribute type="xs:string" name="orderBy" use="required"/>
+    <xs:attribute name="direction" use="optional">
+    	<xs:simpleType>
+    		<xs:restriction base="xs:string">
+    			<xs:pattern value="asc"/>
+    			<xs:pattern value="desc"/>
+    		</xs:restriction>
+    	</xs:simpleType>
+    </xs:attribute>
+    <xs:attribute type="booleanType" name="overlapping" use="optional"/>
+    <xs:attribute type="xs:string" name="fromIndex" use="optional"/>
+    <xs:attribute type="xs:string" name="blockLength" use="optional"/>
+    <xs:attribute type="xs:string" name="iterateAs" use="optional"/>
+  </xs:complexType>
+ 
+  <xs:complexType name="assertSizeRangeRuleType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type which represents check if given element has its sizes in given range.
+  		 
+  		 Attributes:
+  		 
+  		  * variable - the name of the variable/table/list or network
+  		  * minRows - minimum rows approved (expression)
+  		  * maxRows - maximum number of the rows (expression)
+  		  * id - unique identifier of the check
+  		</xs:documentation>
+  	</xs:annotation>
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="preconditionType" name="precondition"/>
+      <xs:element type="errorMessageType" name="errorMessage"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="variable" use="required"/>
+    <xs:attribute type="xs:string" name="id" use="optional"/>
+    <xs:attribute type="xs:string" name="minRows" use="optional"/>
+    <xs:attribute type="xs:string" name="maxRows" use="optional"/>
+  </xs:complexType>
+  
+  <xs:complexType name="binarySearchSizeRuleType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type which represents check if size of the table is suited for binary search
+  		 
+  		 Attributes:
+  		 
+  		  * variable - the name of the variable/table/list or network
+  		  * id - unique identifier of the check
+  		</xs:documentation>
+  	</xs:annotation>
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="preconditionType" name="precondition"/>
+      <xs:element type="errorMessageType" name="errorMessage"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="variable" use="required"/>
+    <xs:attribute type="xs:string" name="id" use="optional"/>
+  </xs:complexType>
+  
+  <xs:complexType name="repeatedValueRuleType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type which represents check of how many times parameter value can be repeated
+  		 
+  		 Attributes:
+  		 
+  		  * variable - the name of the variable/table/list or network
+  		  * iterateAs - logical name of the one row in the table
+  		  * parameter - expression which value is used for check
+  		  * count - expression which references how many times parameter value can be repeated
+  		  * id - unique identifier of the check
+  		</xs:documentation>
+  	</xs:annotation>
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="preconditionType" name="precondition"/>
+      <xs:element type="errorMessageType" name="errorMessage"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="variable" use="required"/>
+    <xs:attribute type="xs:string" name="id" use="optional"/>
+    <xs:attribute type="xs:string" name="iterateAs" use="optional"/>
+    <xs:attribute type="xs:string" name="parameter" use="required"/>
+    <xs:attribute type="xs:string" name="count" use="required"/>
+  </xs:complexType>
+  
+  <xs:complexType name="crcRuleType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type which represents check if calculated CRC value is in expected boundaries
+  		 
+  		 Attributes:
+  		 
+  		  * variable - the name of the variable/table/list or network
+  		  * polynomial - expression which references polynomial value needed for CRC calculation
+  		  * distance - expression which references boundary values in which calculated CRC must be
+  		  * multiplier - expression which references multiplier value which will be used on calculated CRC
+  		  * id - unique identifier of the check
+  		  * parameter - expression which references value which will be compared with calculated CRC
+  		</xs:documentation>
+  	</xs:annotation>
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="preconditionType" name="precondition"/>
+      <xs:element type="errorMessageType" name="errorMessage"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="variable" use="required"/>
+    <xs:attribute type="xs:string" name="id" use="optional"/>
+    <xs:attribute type="xs:string" name="polynomial" use="required"/>
+    <xs:attribute type="xs:string" name="multiplier" use="optional"/>
+    <xs:attribute type="xs:string" name="distance" use="required"/>
+    <xs:attribute type="xs:string" name="parameter" use="required"/>
+  </xs:complexType>
+  
+  <xs:complexType name="crossTableForwardReferencesRuleType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type which represents cross table forward reference check. Check can be formulated as: for every value of **parameter** in table **variable**, multiplied by **multiplier**, there must
+		 exist configured entries at range of indexes from **parameter** * **multiplier** to **parameter** * **multiplier** + **multiplier** - 1 in reference table **reference**
+  		 
+  		 Attributes:
+  		 
+  		  * variable - the name of the variable/table/list or network
+  		  * reference - the name of the referenced variable/table/list or network
+  		  * parameter - the name of the parameter in current table (variable attribute) which references index of referenced table
+  		  * groupSize - expression which value will be used for multiplying parameter value. Default value is 1.
+  		  * id - unique identifier of the check
+  		</xs:documentation>
+  	</xs:annotation>
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="preconditionType" name="precondition"/>
+      <xs:element type="errorMessageType" name="errorMessage"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="variable" use="required"/>
+    <xs:attribute type="xs:string" name="id" use="optional"/>
+    <xs:attribute type="xs:string" name="reference" use="required"/>
+    <xs:attribute type="xs:string" name="parameter" use="required"/>
+    <xs:attribute type="xs:string" name="groupSize" use="optional"/>
+  </xs:complexType>
+  
+  <xs:complexType name="rangeType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type used for defining one range of values
+  		 
+  		 Attributes:
+  		 
+  		  * lowerBoundary - expression which references lower boundary of range
+  		  * upperBoundary - expression which references upper boundary of range
+  		</xs:documentation>
+  	</xs:annotation>
+  	<xs:attribute type="xs:string" name="lowerBoundary" use="required"/>
+  	<xs:attribute type="xs:string" name="upperBoundary" use="required"/>
+  </xs:complexType>
+  
+  <xs:complexType name="nonOverlappingRangesRuleType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type which represents check if given ranges does not overlap
+  		 
+  		 Attributes:
+  		 
+  		  * id - unique identifier of the check
+  		</xs:documentation>
+  	</xs:annotation>
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="preconditionType" name="precondition"/>
+      <xs:element type="rangeType" name="range"/>
+      <xs:element type="errorMessageType" name="errorMessage"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="id" use="optional"/>
+  </xs:complexType>
+  
+  <xs:complexType name="crossTableInverseReferencesRuleType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type which represents cross table inverse reference check. Check can be formulated as: for every entry at index **i** in table **variable**, divided by **divider**, there must exist parameter **parameter** with value **i** / **divider** in table **reference**.
+  		 
+  		 Attributes:
+  		 
+  		  * variable - the name of the variable/table/list or network
+  		  * reference - the name of the referenced variable/table/list or network
+  		  * parameter - the name of the parameter in referenced table which holds value of index from referencing table
+  		  * groupSize - expression which value is used to divide parameters value. Default value is 1.
+  		  * id - unique identifier of the check
+  		</xs:documentation>
+  	</xs:annotation>
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="preconditionType" name="precondition"/>
+      <xs:element type="errorMessageType" name="errorMessage"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="variable" use="required"/>
+    <xs:attribute type="xs:string" name="id" use="optional"/>
+    <xs:attribute type="xs:string" name="reference" use="required"/>
+    <xs:attribute type="xs:string" name="parameter" use="required"/>
+    <xs:attribute type="xs:string" name="groupSize" use="optional"/>
+  </xs:complexType>
+  
+  <xs:complexType name="assertRangeRuleType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type which represents check if given element has its values in given range.
+  		 
+  		 Attributes:
+  		 
+  		  * variable - the name of the variable/table/list or network (expression)
+  		  * minValue - minimal approved value (expression)
+  		  * maxValue - maximal approved value (expression)
+  		  * id - unique identifier of the check
+  		</xs:documentation>
+  	</xs:annotation>
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="preconditionType" name="precondition"/>
+      <xs:element type="errorMessageType" name="errorMessage"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="variable" use="required"/>
+    <xs:attribute type="xs:string" name="id" use="optional"/>
+    <xs:attribute type="xs:string" name="minValue" use="optional"/>
+    <xs:attribute type="xs:string" name="maxValue" use="optional"/>
+  </xs:complexType>
+  
+  <xs:complexType name="elementExistsOnceInListRuleType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type which represents check if given element is part of given list. Additionally, element must appear in list only once.
+  		 
+  		 Attributes:
+  		 
+  		  * element - expression which uses variables. Result of this expression is element which existence is checked
+  		  * list - expression which uses variables. Result of this expression is list of values
+  		  * id - unique identifier of the check
+  		  * logLevel - represents logging label which will be assigned to particular check
+  		</xs:documentation>
+  	</xs:annotation>
+  	<xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="preconditionType" name="precondition"/>
+      <xs:element type="errorMessageType" name="errorMessage"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="element" use="required"/>
+    <xs:attribute type="xs:string" name="list" use="required"/>
+    <xs:attribute type="xs:string" name="id" use="optional"/>
+    <xs:attribute type="logLevels" name="logLevel" use="optional"/>
+  </xs:complexType>
+  
+  <xs:complexType name="elementExistsInListRuleType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type which represents check if given element is part of given list.
+  		 
+  		 Attributes:
+  		 
+  		  * element - expression which uses variables. Result of this expression is element which existence is checked
+  		  * list - expression which uses variables. Result of this expression is list of values
+  		  * id - unique identifier of the check
+  		  * logLevel - represents logging label which will be assigned to particular check
+  		</xs:documentation>
+  	</xs:annotation>
+  	<xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="preconditionType" name="precondition"/>
+      <xs:element type="errorMessageType" name="errorMessage"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="element" use="required"/>
+    <xs:attribute type="xs:string" name="list" use="required"/>
+    <xs:attribute type="xs:string" name="id" use="optional"/>
+    <xs:attribute type="logLevels" name="logLevel" use="optional"/>
+  </xs:complexType>
+  
+  <xs:complexType name="commentType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type which represents the comment text that appears at the bottom of the requirement text.
+  		 
+  		 Attributes:
+  		 
+  		  * text - the plain text
+  		  * type - the type of the comment (DESIGNER_NOTE or JUSTIFICATION)
+  		</xs:documentation>
+  	</xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="text" use="required"/>
+        <xs:attribute type="xs:string" name="type" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  
+  <xs:complexType name="iterateType" mixed="true">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type used for iterating over list of elements where list can be complex variable (complex variable is iterable). In every iteration local variable is produced and it represents current value of iterator.
+  		 This local value is available in all sub nodes (rules and inner iterations) and it can be referenced in expressions in sub nodes.
+  		 
+  		 Attributes:
+  		 
+  		  * over - expression which uses variables. Result is list used for iterating.
+  		  * as - name of local variable produced in every iteration.  
+  		  * aggregation - indicates that results of inner checks are aggregated into one using given aggregation function
+  		  * dummyIteration - indicates that only one iteration is executed and local variable is not created. In this case "over" attribute can be omitted.
+  		  * where - expression which uses variables. Represents condition, inner checks and iterations will be executed only if evaluated value is "True"
+  		</xs:documentation>
+  	</xs:annotation>
+    <xs:choice maxOccurs="1" minOccurs="1">
+      <xs:element type="memoryRuleType" name="memoryRule"/>			  
+      <xs:element type="assertRangeRuleType" name="assertRangeRule" maxOccurs="unbounded"/>
+      <xs:element type="elementExistsOnceInListRuleType" name="elementExistsOnceInListRule"/>
+      <xs:element type="elementExistsInListRuleType" name="elementExistsInListRule"/>
+      <xs:element type="assertEqualRuleType" name="assertEqualRule"/>
+      <xs:element type="assertNotEqualRuleType" name="assertNotEqualRule"/>
+      <xs:element type="numberOfElementsInListRuleType" name="numberOfElementsInListRule"/>
+      <xs:element type="elementNotExistsInListRuleType" name="elementNotExistsInListRule" maxOccurs="unbounded"/>
+      <xs:element type="assertLessRuleType" name="assertLessRule"/>
+      <xs:element type="assertLessEqualRuleType" name="assertLessEqualRule"/>
+      <xs:element type="assertGreatEqualRuleType" name="assertGreatEqualRule"/>
+      <xs:element type="assertGreatRuleType" name="assertGreatRule"/>
+      <xs:element type="integerMultipleRuleType" name="integerMultipleRule"/>
+      <xs:element type="crcRuleType" name="crcRule"/>
+      <xs:element type="nonOverlappingRangesRuleType" name="nonOverlappingRangesRule"/>
+      <xs:element type="assertBitMaskedRuleType" name="assertBitMaskedRule"/>
+      <xs:element type="assertRangeExistsRuleType" name="assertRangeExistsRule"/>
+      <xs:element type="iterateType" name="iterate"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="over" use="optional"/>
+    <xs:attribute type="xs:string" name="as" use="optional"/>
+    <xs:attribute type="xs:string" name="dummyIteration" use="optional"/>
+    <xs:attribute type="xs:string" name="where" use="optional"/>
+  </xs:complexType>
+  
+  <xs:complexType name="requirementType" mixed="true">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type which represents one high level requirement. In order to check high level requirement it can be necessary to combine different rules and iterations.
+  		 
+  		 Attributes:
+  		 
+  		  * id - unique identifier of requirement
+  		  * pctiId - id of PTC Integrity object
+  		  * severity - requirement severity level
+  		  * category - PTC Integrity object category
+  		  * text - textual form of the requirement
+  		</xs:documentation>
+  	</xs:annotation>
+    <xs:choice maxOccurs="unbounded" minOccurs="1">
+      <xs:element type="commentType" name="comment" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element type="tableOrderRuleType" name="tableOrderRule"/>
+      <xs:element type="uniqueTableRuleType" name="uniqueTableRule"/>
+      <xs:element type="assertSizeRangeRuleType"
+      			  name="assertSizeRangeRule"/>      			  
+      <xs:element type="crossTableForwardReferencesRuleType"
+      			  name="crossTableForwardReferencesRule"/>
+      <xs:element type="crossTableInverseReferencesRuleType"
+      			  name="crossTableInverseReferencesRule"/>
+      <xs:element type="assertEqualRuleType" name="assertEqualRule"/>
+      <xs:element type="iterateType" name="iterate"/>
+      <xs:element type="repeatedValueRuleType" name="repeatedValueRule"/>
+      <xs:element type="binarySearchSizeRuleType" name="binarySearchSizeRule"/>
+      <xs:element type="assertUnusedBitsRuleType" name="assertUnusedBitsRule"/>
+      <xs:element type="assertRangeExistsRuleType" name="assertRangeExistsRule"/>
+      <xs:element type="assertBitMaskedRuleType" name="assertBitMaskedRule"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="id" use="optional"/>
+    <xs:attribute type="xs:string" name="ptciId" use="optional"/>
+    <xs:attribute name="severity" use="optional">
+    	<xs:simpleType>
+    		<xs:restriction base="xs:string">
+    			<xs:pattern value="error"/>
+    			<xs:pattern value="warning"/>
+    		</xs:restriction>
+    	</xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="ptcCategory" use="optional">
+    	<xs:simpleType>
+    		<xs:restriction base="xs:string">
+    			<xs:pattern value="Requirement"/>
+    			<xs:pattern value="Comment"/>
+    			<xs:pattern value="Non-Functional Requirement"/>
+    		</xs:restriction>
+    	</xs:simpleType>
+    </xs:attribute>
+    <xs:attribute type="xs:string" name="text"/>
+  </xs:complexType>
+  
+  <xs:complexType name="assertEqualRuleType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type which represent check if two elements are equal.
+  		 
+  		 Attributes:
+  		 
+  		  * variable - expression which uses variables. Result of this expression is first element which is used in comparison
+  		  * value - expression which uses variables. Result of this expression is second element which is used in comparison
+  		  * id - unique identifier of the check
+  		  * logLevel - represents logging label which will be assigned to particular check
+  		</xs:documentation>
+  	</xs:annotation>
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="preconditionType" name="precondition"/>
+      <xs:element type="errorMessageType" name="errorMessage"/>
+    </xs:choice>
+     <xs:attribute type="xs:string" name="variable" use="required"/>
+     <xs:attribute type="xs:string" name="value" use="required"/>
+     <xs:attribute type="xs:string" name="id" use="optional"/>
+     <xs:attribute type="logLevels" name="logLevel" use="optional"/>
+     <xs:attribute type="booleanType" name="round" use="optional"/>
+  </xs:complexType>
+  
+  <xs:complexType name="assertUnusedBitsRuleType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type which represents check of all unused bits.
+  		 
+  		 Attributes:
+  		 
+  		  * variable - expression which uses variables. Result of this expression is first element which is used in comparison
+  		  * id - unique identifier of the check
+  		  * logLevel - represents logging label which will be assigned to particular check
+  		</xs:documentation>
+  	</xs:annotation>
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="preconditionType" name="precondition"/>
+      <xs:element type="errorMessageType" name="errorMessage"/>
+    </xs:choice>
+     <xs:attribute type="xs:string" name="variable" use="required"/>
+     <xs:attribute type="xs:string" name="id" use="optional"/>
+     <xs:attribute type="logLevels" name="logLevel" use="optional"/>
+  </xs:complexType>
+  
+   <xs:complexType name="assertRangeExistsRuleType">
+   	<xs:annotation>
+   		<xs:documentation>
+   		 Type which represents check that all values of parameter p in range from min to max are defined in the table.
+   		 
+   		 Attributes:
+   		 
+   		  * id - unique identifier of the check
+   		  * variable - reference to a table name
+   		  * parameter - name of the item in the referenced table
+   		  * min - expression which references lower boundary of the range
+   		  * max - expression which references upper boundary of the range
+   		  * logLevel - represents logging label which will be assigned to particular check
+   		</xs:documentation>
+   	</xs:annotation>
+   	<xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="preconditionType" name="precondition"/>
+      <xs:element type="errorMessageType" name="errorMessage"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="id" use="required"/>
+    <xs:attribute type="xs:string" name="variable" use="required"/>
+    <xs:attribute type="xs:string" name="parameter" use="required"/>
+    <xs:attribute type="xs:string" name="min" use="required"/>
+    <xs:attribute type="xs:string" name="max" use="required"/>
+    <xs:attribute type="logLevels" name="logLevel" use="optional"/>
+  </xs:complexType>
+  
+  <xs:complexType name="assertBitMaskedRuleType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type which represents check if specific bit(s) of parameter is set to required value.
+  		 
+  		 Attributes:
+  		 
+  		  * id - unique identifier of the check
+  		  * variable - expression which references value which bits are checked
+  		  * value - expression which references value which should be compared with value of expression: variable AND bits.
+  		  * bits - expression which references bit mask
+  		  * logLevel - represents logging label which will be assigned to particular check
+  		</xs:documentation>
+  	</xs:annotation>
+  	<xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="preconditionType" name="precondition"/>
+      <xs:element type="errorMessageType" name="errorMessage"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="id"/>
+    <xs:attribute type="xs:string" name="variable"/>
+    <xs:attribute type="xs:string" name="bits"/>
+    <xs:attribute type="xs:string" name="value"/>
+    <xs:attribute type="logLevels" name="logLevel" use="optional"/>
+  </xs:complexType>
+  
+   <xs:complexType name="assertNotEqualRuleType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type which represent check if two elements are not equal.
+  		 
+  		 Attributes:
+  		 
+  		  * variable - expression which uses variables. Result of this expression is first element which is used in comparison
+  		  * value - expression which uses variables. Result of this expression is second element which is used in comparison
+  		  * id - unique identifier of the check
+  		  * logLevel - represents logging label which will be assigned to particular check
+  		</xs:documentation>
+  	</xs:annotation>
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="preconditionType" name="precondition"/>
+      <xs:element type="errorMessageType" name="errorMessage"/>
+    </xs:choice>
+     <xs:attribute type="xs:string" name="variable" use="required"/>
+     <xs:attribute type="xs:string" name="value" use="required"/>
+     <xs:attribute type="xs:string" name="id" use="optional"/>
+     <xs:attribute type="logLevels" name="logLevel" use="optional"/>
+     <xs:attribute type="booleanType" name="round" use="optional"/>
+  </xs:complexType>
+  
+  <xs:complexType name="groupType" mixed="true">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type used for grouping high level requirements.
+  		 
+  		 Attributes:
+  		 
+  		  * id - unique identifier of group
+  		</xs:documentation>
+  	</xs:annotation>
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="requirementType" name="requirement"/>
+      <xs:element type="dependsType" name="depends"/>
+      <xs:element type="variableType" name="variable"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="id" use="required"/>
+  </xs:complexType>
+  
+  <xs:complexType name="numberOfElementsInListRuleType" mixed="true">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type which represents the check if number of elements in list is as specified.
+  		 
+  		 Attributes:
+  		 
+  		  * list - expression which uses variables. Result of this expression is list of elements
+  		  * length - expression which uses variables. Result of this expression is expected length of list
+  		  * id - unique identifier of the check
+  		  * atLeast - indicates that list needs to have at least elements as it is specified in length attribute
+  		  * logLevel - represents logging label which will be assigned to particular check
+  		</xs:documentation>
+  	</xs:annotation>
+  	<xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="preconditionType" name="precondition"/>
+      <xs:element type="errorMessageType" name="errorMessage"/>
+    </xs:choice>
+	<xs:attribute type="xs:string" name="list" use="required"/>
+   <xs:attribute type="xs:string" name="length" use="required"/>
+   <xs:attribute type="xs:string" name="id" use="optional"/>
+   <xs:attribute type="xs:string" name="atLeast" use="optional"/>
+   <xs:attribute type="logLevels" name="logLevel" use="optional"/>
+    
+  </xs:complexType>
+  
+  <xs:complexType name="elementNotExistsInListRuleType" mixed="true">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type which represents check if element does not exist in list.
+  		 
+  		 Attributes:
+  		 
+  		  * element - expression which uses variables. Result of this expression is element which existence is checked
+  		  * list - expression which uses variables. Result of this expression is list of values
+  		  * id - unique identifier of the check
+  		  * logLevel - represents logging label which will be assigned to particular check
+  		</xs:documentation>
+  	</xs:annotation>
+  	<xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="preconditionType" name="precondition"/>
+      <xs:element type="errorMessageType" name="errorMessage"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="element" use="required"/>
+    <xs:attribute type="xs:string" name="list" use="required"/>
+    <xs:attribute type="xs:string" name="id" use="optional"/>
+    <xs:attribute type="logLevels" name="logLevel" use="optional"/>
+  </xs:complexType>
+  
+  <xs:complexType name="assertLessRuleType">
+	  <xs:annotation>
+  		<xs:documentation>
+  		 Type which represent check if first element is less than second element.
+  		 
+  		 Attributes:
+  		 
+  		  * variable - expression which uses variables. Result of this expression is first element which is used in comparison
+  		  * value - expression which uses variables. Result of this expression is second element which is used in comparison
+  		  * id - unique identifier of the check
+  		  * logLevel - represents logging label which will be assigned to particular check
+  		</xs:documentation>
+  	</xs:annotation>
+  	<xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="preconditionType" name="precondition"/>
+      <xs:element type="errorMessageType" name="errorMessage"/>
+    </xs:choice>
+        <xs:attribute type="xs:string" name="variable" use="required"/>
+        <xs:attribute type="xs:string" name="value" use="required"/>
+        <xs:attribute type="xs:string" name="id" use="optional"/>
+        <xs:attribute type="logLevels" name="logLevel" use="optional"/>
+  </xs:complexType>
+  
+  <xs:complexType name="assertLessEqualRuleType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type which represent check if first element is less or equal than second element.
+  		 
+  		 Attributes:
+  		 
+  		  * variable - expression which uses variables. Result of this expression is first element which is used in comparison
+  		  * value - expression which uses variables. Result of this expression is second element which is used in comparison
+  		  * id - unique identifier of the check
+  		  * logLevel - represents logging label which will be assigned to particular check
+  		</xs:documentation>
+  	</xs:annotation>
+  	<xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="preconditionType" name="precondition"/>
+      <xs:element type="errorMessageType" name="errorMessage"/>
+    </xs:choice>
+        <xs:attribute type="xs:string" name="variable" use="required"/>
+        <xs:attribute type="xs:string" name="value" use="required"/>
+        <xs:attribute type="xs:string" name="id" use="optional"/>
+        <xs:attribute type="logLevels" name="logLevel" use="optional"/>
+  </xs:complexType>
+  
+  <xs:complexType name="assertGreatEqualRuleType">
+   	<xs:annotation>
+  		<xs:documentation>
+  		 Type which represent check if first element is greater or equal than second element.
+  		 
+  		 Attributes:
+  		 
+  		  * variable - expression which uses variables. Result of this expression is first element which is used in comparison
+  		  * value - expression which uses variables. Result of this expression is second element which is used in comparison
+  		  * id - unique identifier of the check
+  		  * logLevel - represents logging label which will be assigned to particular check
+  		</xs:documentation>
+  	</xs:annotation>
+  	<xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="preconditionType" name="precondition"/>
+      <xs:element type="errorMessageType" name="errorMessage"/>
+    </xs:choice>
+        <xs:attribute type="xs:string" name="variable" use="required"/>
+        <xs:attribute type="xs:string" name="value" use="required"/>
+        <xs:attribute type="xs:string" name="id" use="optional"/>
+        <xs:attribute type="logLevels" name="logLevel" use="optional"/>
+  </xs:complexType>
+  
+  <xs:complexType name="dependsType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type used for referencing depending requirement. Requirements which are at the same level as this node will be checked only if depending requirement is passed.
+  		 
+  		 Attributes:
+  		 
+  		  * ref - name of the referenced requirement
+  		</xs:documentation>
+  	</xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="ref" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  
+  <xs:complexType name="integerMultipleRuleType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type which represents check if "value" is equal to "variable" multiplied with integer number ("value" == "variable" * n where n = 1, 2, 3,...).
+  		 
+  		 Attributes:
+  		 
+  		  * variable - expression which uses variables.
+  		  * value - expression which uses variables.
+  		  * id - unique identifier of the check
+  		  * logLevel - represents logging label which will be assigned to particular check
+  		</xs:documentation>
+  	</xs:annotation>
+  	<xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="preconditionType" name="precondition"/>
+      <xs:element type="errorMessageType" name="errorMessage"/>
+    </xs:choice>
+        <xs:attribute type="xs:string" name="variable" use="required"/>
+        <xs:attribute type="xs:string" name="value" use="required"/>
+        <xs:attribute type="xs:string" name="id" use="optional"/>
+        <xs:attribute type="logLevels" name="logLevel" use="optional"/>
+  </xs:complexType>
+  
+  <xs:complexType name="assertGreatRuleType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type which represent check if first element is greater than second element.
+  		 
+  		 Attributes:
+  		 
+  		  * variable - expression which uses variables. Result of this expression is first element which is used in comparison
+  		  * value - expression which uses variables. Result of this expression is second element which is used in comparison
+  		  * id - unique identifier of the check
+  		  * logLevel - represents logging label which will be assigned to particular check
+  		</xs:documentation>
+  	</xs:annotation>
+  	<xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="preconditionType" name="precondition"/>
+      <xs:element type="errorMessageType" name="errorMessage"/>
+    </xs:choice>
+        <xs:attribute type="xs:string" name="variable" use="required"/>
+        <xs:attribute type="xs:string" name="value" use="required"/>
+        <xs:attribute type="xs:string" name="id" use="optional"/>
+        <xs:attribute type="logLevels" name="logLevel" use="optional"/>
+  </xs:complexType>
+  <xs:simpleType name="versionType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Type used for representation of version. Example:
+  		 
+  		  * 1.0.1
+  		</xs:documentation>
+  	</xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:pattern value="(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:complexType name="verificationType">
+  	<xs:annotation>
+  		<xs:documentation>
+  		 Root element of verification file. Verification file should be created in a way that first are specified variables (variable, tree, graph, table) and then
+  		 goes specification of requirements organized into groups.
+  		</xs:documentation>
+  	</xs:annotation>
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="importType" name="import"/>
+      <xs:element type="variableType" name="variable"/>
+      <xs:element type="groupType" name="group" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:choice>
+        <xs:attribute type="versionType" name="version" use="required"/>
+        <xs:attribute type="versionType" name="schemaVersion" use="required"/>
+  </xs:complexType>
+</xs:schema>
+

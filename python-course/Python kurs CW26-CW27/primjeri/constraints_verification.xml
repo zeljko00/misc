@@ -1,0 +1,1323 @@
+<!-- Copyright (C) 2000-2018 TTTech Computertechnik AG. All rights reserved 
+* Schoenbrunnerstrasse 7, A 1040 Wien, Austria. office@tttech-automotive.com
+* 
+* Name 
+* 	constraints.xml
+* 
+* Purpose
+* 	set of the constraints represented as requirements 
+*  
+* Creation 
+* 	03-May-2018 (eSPO)
+* 
+* Revisions
+*   08-May-2018 (eSPO) Requirements finished
+* 	11-May-2018 (ZSP)  rangeRule expressions fixed
+*	14-May-2018 (ZSP)  New rules introduced: assertSizeRangeRule, tableOrderRule,
+*					   uniqueTableRule, assertNotEqualRule, memoryRule,
+*					   crossTableForwardReferenceRule, crossTableInverseReferenceRule
+*   16-May-2018 (eSPO) unused_req
+*	16-May-2018 (ZSP)  Support for direct indexing of table rows 
+*   17-May-2018 (eSPO) comments added
+* 	24-May-2018 (ZSP)  Custom messages added to rules
+*   14-Jun-2018 (eSPO) version attribute added
+* -->
+
+<verification version="1.0.0" schemaVersion="1.0.0">
+	<import file="{input_file}" device="TTE_ES_A664_Pro_PMC"/>
+	
+	<group id="TEST">
+		<!-- TESTING PURPOSES -->
+		<!-- TODO: Remove -->
+		<requirement id="TEST2">
+			<iterate over="Output_Parameters" as="op">
+   				<assertBitMaskedRule id="TEST2" variable="#op.MAC_SRC_ADDR " bits="0x010000000000" value="0" />
+			</iterate>
+		</requirement>	
+		<requirement id="TEST3">
+			<iterate over="Output_Parameters" as="op">
+   				<assertBitMaskedRule id="TEST3" variable="#op.MAC_SRC_ADDR " bits="0x020000000000" value="getBits(10 * 1 - 10, 0, 5)" />
+			</iterate>
+		</requirement>	
+		
+		<!-- TESTINT PURPOSES -->
+		<!-- TODO: Remove -->
+		<requirement id="TEST1">
+			<assertRangeExistsRule id="TEST1" 
+								   variable="Input_VL_Lookup_Table" 
+								   parameter="nVlId" 
+								   min="101" 
+								   max="105" />
+		</requirement>
+		<!-- TESTINT PURPOSES -->
+		<!-- TODO: Remove -->
+		<requirement id="TEST4">
+			<assertEqualRule variable="11" value="max2(10, 11)" id="TEST4"/>
+		</requirement>
+		<!-- TESTINT PURPOSES -->
+		<!-- TODO: Remove -->
+		<requirement id="TEST5">
+			<assertEqualRule variable="10" value="min2(10, 11)" id="TEST5"/>
+		</requirement>
+		<!-- TESTINT PURPOSES -->
+		<!-- TODO: Remove -->
+		<requirement id="TEST6">
+			<assertEqualRule variable="16711" value="max(Schedule_Table.nDelta)" id="TEST6"/>
+		</requirement>
+		<requirement id="TEST7">
+			<assertEqualRule variable="253" value="max(Schedule_Table.nDelta, 1, 5)" id="TEST7"/>
+		</requirement>
+		<requirement id="TEST8">
+			<assertEqualRule variable="253" value="min(Schedule_Table.nDelta, 1, min2(size(Schedule_Table) / 2, 255))" id="TEST8"/>
+		</requirement>
+		<requirement id="Test9">
+			<crossTableInverseReferencesRule variable="Input_Port_Table[index!=0,index!=1,index!=2,index!=3,index!=4,index!=5,index!=6,index!=7]"
+                                                        reference="Input_Lookup_Table"
+                                                        parameter="PORT_BASE_IDX"
+                                                        groupSize="8"
+                                                        id="Test9" />
+		</requirement>
+	</group>
+	
+    <!-- Schedule_Table_requirements -->
+    <group id="Schedule_Table_requirements">
+    	<requirement id="1601880" >
+    		<comment text="design note " type="DESIGN_NOTE"/>
+    		<comment text="justification" type="JUSTIFICATION"/>
+    		<comment text=" text from comment" />
+	    	<iterate over="Schedule_Table" as="st">
+				<assertEqualRule variable="#st.unused" value="0" id="1601880">
+					<errorMessage>Unused bits in Schedule Table configuration block on entry index #st.index are not set to zero.</errorMessage>
+				</assertEqualRule>  
+			</iterate>  
+		</requirement>
+    	<requirement id="0_1">
+	    	<iterate over="Schedule_Table" as="st">
+				<assertRangeRule variable="#st.nDelta"  minValue="1" maxValue="262143" id="0_1" />  
+				<!-- assertRangeRule does not exist -->     
+			</iterate>  
+		</requirement>
+    	<requirement id="1611277">
+	    	<iterate over="Schedule_Table" as="st"> 
+				<assertNotEqualRule variable="#st.nDelta" value="1" id="1611277" >							 
+					<precondition expression="Shaping_Parameters[0].bShapingEnabled == True" />  
+				</assertNotEqualRule>
+			</iterate>  
+		</requirement>
+    	<requirement id="0_3">
+	    	<iterate over="Schedule_Table" as="st">
+				<assertRangeRule variable="#st.nVLIdx" maxValue="Shaping_Parameters[0].nMaxSubVlTt" id="0_3">
+					<precondition expression="#st.bTxEn == True"/>
+					<precondition expression="Shaping_Parameters[0].bTtEnabled == True"/>
+					<errorMessage>Value of the parameter nVLIdx (%variable) of Schedule Table configuration block at entry on index #st.index is greater than
+								  value of the parameter nMaxSubVlTt of Shaping_Parameters configuration block (%maxValue)</errorMessage>
+				</assertRangeRule> 
+			</iterate>  
+		</requirement>
+    	<requirement id="0_4">
+	    	<iterate over="Schedule_Table" as="st">
+				<assertRangeRule variable="#st.nVLIdx" minValue="Shaping_Parameters[0].nMaxSubVlRc - 1"
+								 id="0_4">
+					<precondition expression="#st.bTxEn == True"/>
+					<precondition expression="Shaping_Parameters[0].bTtEnabled == True"/>
+					<precondition expression="Shaping_Parameters[0].bShapingEnabled == True"/>
+					<errorMessage>Value of the parameter nVLIdx (%variable) of Schedule Table configuration block at entry on index #st.index is less than
+								  value of the parameter nMaxSubVlRc of Shaping_Parameters configuration block decreased by one (%minValue)</errorMessage>
+				</assertRangeRule>    
+			</iterate>  
+		</requirement>
+    	<requirement id="1611341">
+			<assertSizeRangeRule variable="Schedule_Table"  minRows="0" maxRows="256" id="1611341">
+				<errorMessage>Number of entries in Schedule Table configuration block is not in range [0, 256].</errorMessage>
+			</assertSizeRangeRule>  
+		</requirement>
+		<requirement id="1602230">
+			<assertSizeRangeRule variable="Schedule_Table"  minRows="1" maxRows="256" id="1602230">				 
+					<precondition expression="size(Schedule_Entry_Points_Table) gt 0"/>
+					<!-- new function 'size' needs implementation -->  
+					<!-- maybe to use separate rule? -->  
+					<!-- there are two types of usage constraints, conditional and mandatory
+					this one is contitional. -->
+			</assertSizeRangeRule>
+    	</requirement>
+    </group>
+    
+    <!-- IC_RM_Table_requirements -->
+	<group id="IC_RM_Table_requirements">
+		<requirement id="1_0">
+	    	<iterate over="IC_RM_Table" as="icrm">
+				<assertEqualRule variable="#icrm.unused" value="0" id="1_0" />   
+			</iterate>  
+		</requirement>
+	
+		<requirement id="1_1">
+			<assertSizeRangeRule variable="IC_RM_Table"  minRows="0" maxRows="512" id="1_1" />  
+		</requirement>
+	</group>
+	
+    <!-- Output_VL_Table_requirements -->
+	<group id="Output_VL_Table_requirements">
+		<requirement id="2_1">
+	    	<iterate over="Output_VL_Table" as="ovt">
+				<assertEqualRule variable="#ovt.unused" value="0" id="2_1" />   
+			</iterate>  
+		</requirement>
+	
+		<requirement id="2_0">
+	    	<iterate over="Output_VL_Table" as="ovt">
+				<assertEqualRule variable="#ovt.bSequenceNumber"
+					value="Output_Sub_VL_Table[#ovt.index].SN_EN" id="2_0" />  
+			</iterate>  
+		</requirement>
+		
+		<requirement id="2_2">
+			<assertSizeRangeRule variable="Output_VL_Table"  minRows="0" maxRows="256" id="2_2" />  
+		</requirement>
+	</group>
+	
+    <!-- Input_VL_Lookup_Table_requirements -->
+	<group id="Input_VL_Lookup_Table_requirements">
+		<requirement id="3_0">
+	    	<iterate over="Input_VL_Lookup_Table" as="ivl">
+				<assertEqualRule variable="#ivl.unused" value="0" id="3_0" />   
+			</iterate>  
+		</requirement>
+		
+		<!-- For every entry in table there must exists at least one configured input port -->
+		<requirement id="3_3">
+	    	<iterate over="Input_VL_Lookup_Table" as="ivl">
+				<assertEqualRule variable="True"
+								 value="Input_Port_Table[Input_Lookup_Table[#ivl.index].PORT_BASE_IDX * 8].PTYPE != 0x7 or
+								       Input_Port_Table[Input_Lookup_Table[#ivl.index].PORT_BASE_IDX * 8 + 1].PTYPE != 0x7 or 
+								       Input_Port_Table[Input_Lookup_Table[#ivl.index].PORT_BASE_IDX * 8 + 2].PTYPE != 0x7 or 
+								       Input_Port_Table[Input_Lookup_Table[#ivl.index].PORT_BASE_IDX * 8 + 3].PTYPE != 0x7 or 
+								       Input_Port_Table[Input_Lookup_Table[#ivl.index].PORT_BASE_IDX * 8 + 4].PTYPE != 0x7 or 
+								       Input_Port_Table[Input_Lookup_Table[#ivl.index].PORT_BASE_IDX * 8 + 5].PTYPE != 0x7 or 
+								       Input_Port_Table[Input_Lookup_Table[#ivl.index].PORT_BASE_IDX * 8 + 6].PTYPE != 0x7 or 
+								       Input_Port_Table[Input_Lookup_Table[#ivl.index].PORT_BASE_IDX * 8 + 7].PTYPE != 0x7"
+							     id="3_3" />   
+			</iterate>  
+		</requirement>
+	
+		
+		<requirement id="3_1">
+			<assertSizeRangeRule variable="Input_VL_Lookup_Table"  minRows="0" maxRows="512" id="3_1" />  
+		</requirement>
+		<requirement id="1602259" >
+			<tableOrderRule id="1602259" variable="Input_VL_Lookup_Table"
+							iterateAs="ivlt"
+							orderBy="#ivlt.nVlId" direction="asc" overlapping="False"
+							fromIndex="0" blockLength="size(Input_VL_Lookup_Table)"/>
+			<!-- tableOrderRule does not exist but code can be reused-->  
+		</requirement>
+		
+		<requirement id="3_2" >
+			<uniqueTableRule id="3_2" variable="Input_VL_Lookup_Table"
+							 iterateAs="ivlt"
+							 fromIndex="0" blockLength="size(Input_VL_Lookup_Table)"
+							 uniqueOn="#ivlt.nVlId"/>
+			<!-- uniqueTableRule does not exist but code can be reused-->  
+		</requirement>
+		
+	</group>
+	
+	
+    <!-- Schedule_Entry_Points_Table_requirements -->
+	<group id="Schedule_Entry_Points_Table_requirements">
+		<requirement id="4_4">
+	    	<iterate over="Schedule_Entry_Points_Table" as="sep">
+				<assertEqualRule variable="#sep.unused" value="0" id="4_4" />   
+			</iterate>  
+		</requirement>
+		
+		<!-- This address must be within the address range of the sub-schedule as identified by the 
+		nSubScheduleIdx field of this entry of the entry point -->
+		<requirement id="4_2">
+	    	<iterate over="Schedule_Entry_Points_Table" as="sep">
+				<assertRangeRule variable="#sep.nAddress"
+								 maxValue="Schedule_Parameters[0].End_Of_Sub_Schedule_Table_anSubscheduleEndIdx[#sep.nSubScheduleIdx]" 
+								 minValue="Schedule_Parameters[0].End_Of_Sub_Schedule_Table_anSubscheduleEndIdx[(#sep.nSubScheduleIdx - 1)] + 1"
+								 id="4_2" >
+					<precondition expression="( #sep.index % 8 ) le Schedule_Parameters[0].nActiveSubSchedules" />
+					<precondition expression="#sep.nSubScheduleIdx gt 0 and #sep.nSubScheduleIdx le 7" />
+				</assertRangeRule>   
+			</iterate>  
+		</requirement>
+		
+		<!-- This address must be within the address range of the sub-schedule as identified by the 
+		nSubScheduleIdx field of this entry of the entry point (in case nSubScheduleIdx is zero) -->
+		<requirement id="4_3">
+	    	<iterate over="Schedule_Entry_Points_Table" as="sep">
+				<assertRangeRule variable="#sep.nAddress"
+								 maxValue="Schedule_Parameters[0].End_Of_Sub_Schedule_Table_anSubscheduleEndIdx[#sep.nSubScheduleIdx + 1] - 1"
+								 id="4_3" >
+					<precondition expression="#sep.nSubScheduleIdx == 0" />
+				</assertRangeRule>   
+			</iterate>  
+		</requirement>
+		
+		<!-- cannot be zero -->
+		<requirement id="4_0">
+	    	<iterate over="Schedule_Entry_Points_Table" as="sep">
+				<assertRangeRule variable="#sep.nDelta"
+								 minValue="1"
+								 maxValue="262143"
+								 id="4_0" >
+					<precondition expression="( #sep.index % 8) le Schedule_Parameters[0].nActiveSubSchedules" />
+				</assertRangeRule>   
+			</iterate>  
+		</requirement>
+		
+		<!--
+		In case the bShapingEnabled flag of the Shaping Parameters configuration block is set,
+		the minimum difference between any two entries of an entry point assigned to an active
+		sub-schedule is two 
+		 -->
+		<requirement id="4_1">
+	    	<iterate over="Schedule_Entry_Points_Table" as="sep">
+				<assertRangeRule variable="#sep.nDelta"
+								 minValue="1"
+								 maxValue="2 + Schedule_Entry_Points_Table[(#sep.index - 1)].nDelta"
+								 id="4_1" >				
+					<precondition expression="( #sep.index % 8) le Schedule_Parameters[0].nActiveSubSchedules" />
+					<precondition expression="Shaping_Parameters[0].bShapingEnabled == True" />
+					<precondition expression="#sep.index gt 0 and (( #sep.index - 1) // 8 == #sep.index // 8)" />
+				</assertRangeRule>   
+			</iterate>  
+		</requirement>
+		
+		<!--
+		The entries being part of an entry point must be provided sorted in ascending order 
+		(i.e. those having smaller values must be loaded before those having larger values) 
+		by their respective nDelta values 
+		 -->
+		<requirement id="4_6" >
+			<tableOrderRule id="4_6" variable="Schedule_Entry_Points_Table"
+							fromIndex="0" blockLength="8" direction="asc"
+							iterateAs="sept"
+							overlapping="True" orderBy="#sept.nDelta">
+				<precondition expression="( #sept.index % 8 ) le Schedule_Parameters[0].nActiveSubSchedules" />
+				<!-- precondition in new rule. how to resolve 'index'? -->
+			</tableOrderRule>
+		</requirement>
+
+		
+		<!-- Any two entries of an entry point assigned to an active sub-schedule 
+		     must contain different values for this field. -->
+		<requirement id="4_7" >
+			<uniqueTableRule id="4_7" variable="Schedule_Entry_Points_Table"
+							 fromIndex="0" blockLength="8" repeat="True"
+							 iterateAs="sept"
+							 uniqueOn="#sept.nAddress">
+				<precondition expression="( #sept.index % 8 ) le Schedule_Parameters[0].nActiveSubSchedules" />
+			</uniqueTableRule> 
+		</requirement>
+		
+		<!-- Any two entries of an entry point assigned to an active sub-schedule 
+		     must contain different values for this field. -->
+		<requirement id="1601888" >
+			<uniqueTableRule id="1601888" variable="Schedule_Entry_Points_Table"
+							 iterateAs="sept"
+							 fromIndex="0" blockLength="8" repeat="True" 
+							 uniqueOn="#sept.nSubScheduleIdx">
+				<precondition expression="( #sept.index % 8 ) le Schedule_Parameters[0].nActiveSubSchedules" />
+			</uniqueTableRule> 
+		</requirement>
+		
+	</group>
+	
+		
+    <!-- Best_Effort_Filter_Table_requirements -->
+	<group id="Best_Effort_Filter_Table_requirements">
+		<!-- The field uvMacAddr must not have any bit set that is not set in uvMacFilter -->
+		<requirement id="1668060">
+	    	<iterate over="Best_Effort_Filter_Table" as="bef">
+				<assertEqualRule variable="#bef.uvMacAddr amp #bef.uvMacFilter"
+								 value="#bef.uvMacAddr"
+								 id="1668060" />   
+			</iterate>  
+		</requirement>
+		
+		<requirement id="5_1">
+			<assertSizeRangeRule variable="Best_Effort_Filter_Table"  minRows="0" maxRows="64"
+								 id="5_1" />  
+		</requirement>
+		<!-- Entries of the table must be provided in ascending order sorted by the uvMacAddr 
+		parameter interpreted as 48 bits unsigned integer. -->
+		<requirement id="5_2" >
+			<tableOrderRule id="5_2" variable="Best_Effort_Filter_Table"
+							iterateAs="beft"
+							fromIndex="0" blockLength="size(Best_Effort_Filter_Table)" direction="asc"
+							overlapping="False" orderBy="#beft.uvMacAddr">
+			</tableOrderRule>
+		</requirement>
+	</group>
+	
+		
+    <!-- Partition_Space_Table_requirements -->
+	<group id="Partition_Space_Table_requirements">
+		<requirement id="6_0">
+	    	<iterate over="Partition_Space_Table" as="pst">
+				<assertEqualRule variable="#pst.unused"
+								 value="0"
+								 id="6_0" />   
+			</iterate>  
+		</requirement>
+		
+		<requirement id="6_1">
+			<assertSizeRangeRule variable="Partition_Space_Table"  minRows="8" maxRows="8"
+								 id="6_1" />  
+		</requirement>
+	</group>
+
+    <!-- Schedule_Parameters_requirements -->
+	<group id="Schedule_Parameters_requirements">
+		<requirement id="7_1">
+	    	<iterate over="Schedule_Parameters" as="sp">
+				<assertEqualRule variable="#sp.unused"
+								 value="0"
+								 id="7_1" />   
+			</iterate>  
+		</requirement>
+		
+		<!-- This configuration block is compulsory if the user 
+		provides values for the Schedule Entry Points Table -->
+		<requirement id="7_2">
+			<assertSizeRangeRule variable="Schedule_Parameters"  minRows="1" 
+								 id="7_2" >
+				<precondition expression="size(Schedule_Entry_Points_Table) gt 0"/>
+			</assertSizeRangeRule>  
+		</requirement>
+	</group>
+
+    <!-- Shaping_Parameters_requirements -->
+	<group id="Shaping_Parameters_requirements">
+		<requirement id="8_3">
+	    	<iterate over="Shaping_Parameters" as="sp">
+				<assertEqualRule variable="#sp.unused"
+								 value="0"
+								 id="8_3" />   
+			</iterate>  
+		</requirement>
+		
+		<requirement id="8_2">
+	    	<iterate over="Shaping_Parameters" as="sp">
+				<assertRangeRule variable="#sp.nShapingPeriod"
+								 minValue="16"
+								 maxValue="16383"
+								 id="8_2" />	
+			</iterate>  
+		</requirement>
+		<!-- The flag must be cleared if the user does not provide data 
+		for the Output VL Table configuration block -->
+		<requirement id="8_1">
+	    	<iterate over="Shaping_Parameters" as="sp">
+				<assertEqualRule variable="#sp.bShapingEnabled"
+								 value="False"
+								 id="8_1" >
+					<precondition expression="size(Output_Sub_VL_Table) == 0" />
+				</assertEqualRule>   
+			</iterate>  
+		</requirement>
+		
+		<!-- The flag must be cleared if the user does not provide data 
+		for the Output VL Table configuration block -->
+		<requirement id="8_0">
+	    	<iterate over="Shaping_Parameters" as="sp">
+				<assertEqualRule variable="#sp.bTtEnabled"
+								 value="False"
+								 id="8_0" >
+					<precondition expression="size(Output_Sub_VL_Table) == 0" />
+				</assertEqualRule>   
+			</iterate>  
+		</requirement>
+		
+	</group>
+
+    <!-- IC_RM_Parameters_requirements -->
+	<group id="IC_RM_Parameters_requirements">
+		<requirement id="9_0">
+	    	<iterate over="IC_RM_Parameters" as="sp">
+				<assertEqualRule variable="#sp.unused"
+								 value="0"
+								 id="9_0" />   
+			</iterate>  
+		</requirement>
+	</group>
+
+    <!-- Clock_Synchronization_Parameters_requirements -->
+	<group id="Clock_Synchronization_Parameters_requirements">
+		<!-- The sum of this parameter and the nEsMaxExtCorrValue parameter must be smaller 
+		than 1/5 times the value of nEsIntegrationCycleDuration as this is the maximum drift 
+		that can be compensated by the schedule -->
+		<requirement id="10_6">
+	    	<iterate over="Clock_Synchronization_Parameters" as="csp">
+				<assertRangeRule variable="#csp.nEsAcceptanceWindowHalf"
+								 maxValue="0.2 * #csp.nEsIntegrationCycleDuration - #csp.nEsMaxExtCorrValue - 1"
+								 id="10_6" />   
+			</iterate>  
+		</requirement>
+		
+		<requirement id="10_4">
+	    	<iterate over="Clock_Synchronization_Parameters" as="csp">
+				<assertRangeRule variable="#csp.nEsCaAcceptanceWindowHalf"
+								 minValue="23"
+								 id="10_4" >
+					<precondition expression="General_Parameters[0].uvClockSpeedMask amp 0x1 == 0x1" />
+				</assertRangeRule>   
+			</iterate>  
+		</requirement>
+		
+		<requirement id="10_5">
+	    	<iterate over="Clock_Synchronization_Parameters" as="csp">
+				<assertRangeRule variable="#csp.nEsCaAcceptanceWindowHalf"
+								 minValue="23"
+								 id="10_5" >
+					<precondition expression="General_Parameters[0].uvClockSpeedMask amp 0x2 == 0x2" />
+				</assertRangeRule>   
+			</iterate>  
+		</requirement>
+		<!-- The value o the field must be larger than the value of the nEsAcceptanceWindowHalf parameter -->
+		<requirement id="10_3">
+	    	<iterate over="Clock_Synchronization_Parameters" as="csp">
+				<assertRangeRule variable="#csp.nEsExpectedArrival"
+								 minValue="#csp.nEsAcceptanceWindowHalf + 1"
+								 id="10_3" />   
+			</iterate>  
+		</requirement>
+		
+		<!-- The value of the field must be smaller than the value of the nEsIdInMax field -->
+		<requirement id="10_2">
+	    	<iterate over="Clock_Synchronization_Parameters" as="csp">
+				<assertRangeRule variable="#csp.nEsIdInMax"
+								 minValue="#csp.nEsIdInMin"
+								 id="10_2" />   
+			</iterate>  
+		</requirement>
+		
+		<!-- The value of the field must be smaller than if the bEsUseSingleVlId flag is cleared -->
+		<requirement id="10_1">
+	    	<iterate over="Clock_Synchronization_Parameters" as="csp">
+				<assertRangeRule variable="#csp.nEsIdOut"
+								 maxValue="65534 - 1"
+								 id="10_1" >
+					<precondition expression="#csp.bEsUseSingleVlId == False" />   
+				</assertRangeRule>
+			</iterate>  
+		</requirement>
+		
+		<!-- The implementation requires this value to be larger than the sum of nEsExpectedArrival
+		plus four times the value of nEsAcceptanceWindowHalf plus twice the value of 
+		nEsMaxExtCorrValue plus 23. -->
+		<requirement id="10_0">
+	    	<iterate over="Clock_Synchronization_Parameters" as="csp">
+				<assertRangeRule variable="#csp.nEsIntegrationCycleDuration"
+								 minValue="#csp.nEsExpectedArrival + 4 * #csp.nEsAcceptanceWindowHalf + 2 * #csp.nEsMaxExtCorrValue + 23 + 1"
+								 id="10_0" />
+			</iterate>  
+		</requirement>
+	</group>
+	
+	
+
+    <!-- General_Parameters_requirements -->
+	<group id="General_Parameters_requirements">
+		<requirement id="11_3">
+	    	<iterate over="General_Parameters" as="gp">
+				<assertEqualRule variable="#gp.unused"
+								 value="0"
+								 id="11_3" />   
+			</iterate>  
+		</requirement>
+		<!-- Bit 0 is used for 25 MHz clock speed, bit 1 is used for 125 MHz speed -->
+		<requirement id="11_2">
+	    	<iterate over="General_Parameters" as="gp">
+				<assertRangeRule variable="#gp.uvClockSpeedMask"
+								 minValue="1" maxValue="3"
+								 id="11_2" />
+			</iterate>  
+		</requirement>		
+		<requirement id="11_1">
+	    	<iterate over="General_Parameters" as="gp">
+				<assertRangeRule variable="#gp.nMaxFrameSize"
+								 minValue="64" maxValue="2047"
+								 id="11_1" />
+			</iterate>  
+		</requirement>		
+		<requirement id="11_0">
+	    	<iterate over="General_Parameters" as="gp">
+				<assertRangeRule variable="#gp.pLastBuffer"
+								 minValue="2" maxValue="2047"
+								 id="11_0" />
+			</iterate>  
+		</requirement>			
+		
+		<!-- This configuration block is compulsory if the user 
+		provides values for the Schedule Entry Points Table -->
+		<requirement id="11_4">
+			<assertSizeRangeRule variable="General_Parameters"  minRows="1" 
+								 id="11_4" />  
+		</requirement>	
+	</group>
+	
+    <!-- Output_Parameters_requirements -->
+	<group id="Output_Parameters_requirements">
+		<requirement id="32_0">
+	    	<iterate over="Output_Parameters" as="gp">
+				<assertEqualRule variable="#gp.unused"
+								 value="0"
+								 id="32_0" />   
+			</iterate>  
+		</requirement>
+		
+		<!-- This configuration block is mandatory if the output function is used by the host -->
+		<requirement id="32_1">
+			<assertSizeRangeRule variable="Output_Parameters"  minRows="1" 
+								 id="32_1"  >
+					<precondition expression="size(Output_Port_Table) gt 0" />   
+			</assertSizeRangeRule>
+		</requirement>
+	</group>
+	
+    <!-- Output_Port_Table_requirements -->
+	<group id="Output_Port_Table_requirements">
+		<requirement id="33_0">
+	    	<iterate over="Output_Port_Table" as="opt">
+				<assertEqualRule variable="#opt.unused"
+								 value="0"
+								 id="33_0" >
+					<precondition expression="#opt.PTYPE == 0" />
+				</assertEqualRule>   
+			</iterate>  
+		</requirement>
+		<requirement id="33_1">
+	    	<iterate over="Output_Port_Table" as="opt">
+				<assertEqualRule variable="#opt.unused"
+								 value="0"
+								 id="33_1" >
+					<precondition expression="#opt.PTYPE == 1" />
+				</assertEqualRule>   
+			</iterate>  
+		</requirement>
+		<requirement id="33_2">
+	    	<iterate over="Output_Port_Table" as="opt">
+				<assertEqualRule variable="#opt.unused"
+								 value="0"
+								 id="33_2" >
+					<precondition expression="#opt.PTYPE == 2" />
+				</assertEqualRule>   
+			</iterate>  
+		</requirement>
+		<requirement id="33_3">
+	    	<iterate over="Output_Port_Table" as="opt">
+				<assertEqualRule variable="#opt.unused"
+								 value="0"
+								 id="33_3" >
+					<precondition expression="#opt.PTYPE == 3" />
+				</assertEqualRule>   
+			</iterate>  
+		</requirement>
+		<requirement id="33_5">
+	    	<iterate over="Output_Port_Table" as="opt">
+				<assertEqualRule variable="#opt.unused"
+								 value="0"
+								 id="33_5" >
+					<precondition expression="#opt.PTYPE == 4" />
+				</assertEqualRule>   
+			</iterate>  
+		</requirement>
+		<requirement id="33_4">
+	    	<iterate over="Output_Port_Table" as="opt">
+				<assertEqualRule variable="#opt.unused_gap"
+								 value="0"
+								 id="33_4" >
+					<precondition expression="#opt.PTYPE == 4" />
+				</assertEqualRule>   
+			</iterate>  
+		</requirement>
+		<requirement id="33_6">
+	    	<iterate over="Output_Port_Table" as="opt">
+				<assertEqualRule variable="#opt.unused"
+								 value="0"
+								 id="33_6" >
+					<precondition expression="#opt.PTYPE == 5" />
+				</assertEqualRule>   
+			</iterate>  
+		</requirement>
+		<requirement id="33_7">
+	    	<iterate over="Output_Port_Table" as="opt">
+				<assertEqualRule variable="#opt.unused"
+								 value="0"
+								 id="33_7" >
+					<precondition expression="#opt.PTYPE == 6" />
+				</assertEqualRule>   
+			</iterate>  
+		</requirement>
+		<requirement id="33_8">
+	    	<iterate over="Output_Port_Table" as="opt">
+				<assertEqualRule variable="#opt.unused"
+								 value="0"
+								 id="33_8" >
+					<precondition expression="#opt.PTYPE == 7" />
+				</assertEqualRule>   
+			</iterate>  
+		</requirement>
+		<requirement id="1602218">
+			<assertSizeRangeRule variable="Output_Port_Table" 
+								 minRows="1" maxRows="2048"
+								 id="1602218"  />
+		</requirement>	
+		<requirement id="1668106">
+			<crossTableForwardReferencesRule variable="Output_Port_Table" 
+								 reference="Output_Sub_VL_Table"
+								 parameter="VL_IDX"
+								 id="1668106"  />
+		</requirement>	
+	</group>
+	
+	
+    <!-- Output_Partition_Table_requirements -->
+	<group id="Output_Partition_Table_requirements">
+		
+		<!-- This configuration block is mandatory if the output function is used by the host -->
+		<requirement id="34_0">
+			<assertSizeRangeRule variable="Output_Partition_Table"  minRows="1" maxRows="8"
+								 id="34_0"  />
+		</requirement>	
+	</group>
+	
+    <!-- Input_Parameters_requirements -->
+	<group id="Input_Parameters_requirements">
+		
+		<requirement id="35_0">
+	    	<iterate over="Input_Parameters" as="ip">
+				<assertEqualRule variable="#ip.unused"
+								 value="0"
+								 id="35_0" />   
+			</iterate>  
+		</requirement>
+		
+		<requirement id="35_2">
+	    	<iterate over="Input_Parameters" as="ip">
+				<memoryRule id="35_2" 
+					variable="#ip.LAST_BUF"
+					portsTable="Input_Port_Table"
+					iteratePortTableAs="ipt"
+					queueLength="#ipt.ENTRIES"
+					maxSizeQueuing="General_Parameters[0].nMaxFrameSize"
+					queuingPrecondition="#ipt.SAMPLING == 0"
+					maxSizeSampling="General_Parameters[0].nMaxFrameSize" 
+					samplingPrecondition="#ipt.SAMPLING == 1 and #ipt.PTYPE != 7"
+					memoryScale="( 2 ** #ip.BUF_SCALE ) * 64"
+					numberOfPartitions="8"
+					zeroBased="True"/>
+			</iterate>  
+		</requirement>	
+		
+		<requirement id="35_3">
+	    	<iterate over="Input_Parameters" as="ip">
+				<memoryRule id="35_3" 
+					variable="#ip.PART_BUFS0"
+					portsTable="Input_Port_Table"
+					iteratePortTableAs="ipt"
+					queueLength="#ipt.ENTRIES"
+					maxSizeQueuing="General_Parameters[0].nMaxFrameSize"
+					queuingPrecondition="#ipt.SAMPLING == 0 and #ipt.PART_NR == 0"
+					maxSizeSampling="General_Parameters[0].nMaxFrameSize" 
+					samplingPrecondition="#ipt.SAMPLING == 1 and #ipt.PTYPE != 7 and #ipt.PART_NR == 0"
+					memoryScale="( 2 ** #ip.BUF_SCALE ) * 64"
+					numberOfPartitions="1"
+					zeroBased="False"/>
+			</iterate>  
+		</requirement>	
+		
+		<requirement id="35_4">
+	    	<iterate over="Input_Parameters" as="ip">
+				<memoryRule id="35_4" 
+					variable="#ip.PART_BUFS1"
+					portsTable="Input_Port_Table"
+					iteratePortTableAs="ipt"
+					queueLength="#ipt.ENTRIES"
+					maxSizeQueuing="General_Parameters[0].nMaxFrameSize"
+					queuingPrecondition="#ipt.SAMPLING == 0 and #ipt.PART_NR == 0"
+					maxSizeSampling="General_Parameters[0].nMaxFrameSize" 
+					samplingPrecondition="#ipt.SAMPLING == 1 and #ipt.PTYPE != 7 and #ipt.PART_NR == 1"
+					memoryScale="( 2 ** #ip.BUF_SCALE ) * 64"
+					numberOfPartitions="1"
+					zeroBased="False"/>
+			</iterate>  
+		</requirement>	
+		
+		<requirement id="35_5">
+	    	<iterate over="Input_Parameters" as="ip">
+				<memoryRule id="35_5" 
+					variable="#ip.PART_BUFS2"
+					portsTable="Input_Port_Table"
+					iteratePortTableAs="ipt"
+					queueLength="#ipt.ENTRIES"
+					maxSizeQueuing="General_Parameters[0].nMaxFrameSize"
+					queuingPrecondition="#ipt.SAMPLING == 0 and #ipt.PART_NR == 2"
+					maxSizeSampling="General_Parameters[0].nMaxFrameSize" 
+					samplingPrecondition="#ipt.SAMPLING == 1 and #ipt.PTYPE != 7 and #ipt.PART_NR == 2"
+					memoryScale="( 2 ** #ip.BUF_SCALE ) * 64"
+					numberOfPartitions="1"
+					zeroBased="False"/>
+			</iterate>  
+		</requirement>	
+		
+		<requirement id="35_6">
+	    	<iterate over="Input_Parameters" as="ip">
+				<memoryRule id="35_6" 
+					variable="#ip.PART_BUFS3"
+					portsTable="Input_Port_Table"
+					iteratePortTableAs="ipt"
+					queueLength="#ipt.ENTRIES"
+					maxSizeQueuing="General_Parameters[0].nMaxFrameSize"
+					queuingPrecondition="#ipt.SAMPLING == 0 and #ipt.PART_NR == 3"
+					maxSizeSampling="General_Parameters[0].nMaxFrameSize" 
+					samplingPrecondition="#ipt.SAMPLING == 1 and #ipt.PTYPE != 7 and #ipt.PART_NR == 3"
+					memoryScale="( 2 ** #ip.BUF_SCALE ) * 64"
+					numberOfPartitions="1"
+					zeroBased="False"/>
+			</iterate>  
+		</requirement>	
+		
+		<requirement id="35_7">
+	    	<iterate over="Input_Parameters" as="ip">
+				<memoryRule id="35_7" 
+					variable="#ip.PART_BUFS4"
+					portsTable="Input_Port_Table"
+					iteratePortTableAs="ipt"
+					queueLength="#ipt.ENTRIES"
+					maxSizeQueuing="General_Parameters[0].nMaxFrameSize"
+					queuingPrecondition="#ipt.SAMPLING == 0 and #ipt.PART_NR == 4"
+					maxSizeSampling="General_Parameters[0].nMaxFrameSize" 
+					samplingPrecondition="#ipt.SAMPLING == 1 and #ipt.PTYPE != 7 and #ipt.PART_NR == 4"
+					memoryScale="( 2 ** #ip.BUF_SCALE ) * 64"
+					numberOfPartitions="1"
+					zeroBased="False"/>
+			</iterate>  
+		</requirement>	
+		
+		<requirement id="35_8">
+	    	<iterate over="Input_Parameters" as="ip">
+				<memoryRule id="35_8" 
+					variable="#ip.PART_BUFS5"
+					portsTable="Input_Port_Table"
+					iteratePortTableAs="ipt"
+					queueLength="#ipt.ENTRIES"
+					maxSizeQueuing="General_Parameters[0].nMaxFrameSize"
+					queuingPrecondition="#ipt.SAMPLING == 0 and #ipt.PART_NR == 5"
+					maxSizeSampling="General_Parameters[0].nMaxFrameSize" 
+					samplingPrecondition="#ipt.SAMPLING == 1 and #ipt.PTYPE != 7 and #ipt.PART_NR == 5"
+					memoryScale="( 2 ** #ip.BUF_SCALE ) * 64"
+					numberOfPartitions="1"
+					zeroBased="False"/>
+			</iterate>  
+		</requirement>	
+		
+		<requirement id="35_9">
+	    	<iterate over="Input_Parameters" as="ip">
+				<memoryRule id="35_9" 
+					variable="#ip.PART_BUFS6"
+					portsTable="Input_Port_Table"
+					iteratePortTableAs="ipt"
+					queueLength="#ipt.ENTRIES"
+					maxSizeQueuing="General_Parameters[0].nMaxFrameSize"
+					queuingPrecondition="#ipt.SAMPLING == 0 and #ipt.PART_NR == 6"
+					maxSizeSampling="General_Parameters[0].nMaxFrameSize" 
+					samplingPrecondition="#ipt.SAMPLING == 1 and #ipt.PTYPE != 7 and #ipt.PART_NR == 6"
+					memoryScale="( 2 ** #ip.BUF_SCALE ) * 64"
+					numberOfPartitions="1"
+					zeroBased="False"/>
+			</iterate>  
+		</requirement>	
+		
+		<requirement id="35_10">
+	    	<iterate over="Input_Parameters" as="ip">
+				<memoryRule id="35_10" 
+					variable="#ip.PART_BUFS7"
+					portsTable="Input_Port_Table"
+					iteratePortTableAs="ipt"
+					queueLength="#ipt.ENTRIES"
+					maxSizeQueuing="General_Parameters[0].nMaxFrameSize"
+					queuingPrecondition="#ipt.SAMPLING == 0 and #ipt.PART_NR == 7"
+					maxSizeSampling="General_Parameters[0].nMaxFrameSize" 
+					samplingPrecondition="#ipt.SAMPLING == 1 and #ipt.PTYPE != 7 and #ipt.PART_NR == 7"
+					memoryScale="( 2 ** #ip.BUF_SCALE ) * 64"
+					numberOfPartitions="1"
+					zeroBased="False"/>
+			</iterate>  
+		</requirement>	
+		
+		<requirement id="35_1">
+			<assertSizeRangeRule variable="Input_Parameters"  minRows="1"
+								 id="35_1"  >
+				 <precondition expression="size(Input_Port_Table) gt 0"/>
+			</assertSizeRangeRule>
+		</requirement>	
+	</group>
+	
+    <!-- Input_Lookup_Table_requirements -->
+	<group id="Input_Lookup_Table_requirements">
+		
+		<requirement id="36_0">
+	    	<iterate over="Input_Lookup_Table" as="ilt">
+				<assertEqualRule variable="#ilt.unused"
+								 value="0"
+								 id="36_0" />   
+			</iterate>  
+		</requirement>
+		<!-- The maximum number of rows in the table is defined by the design parameter G_NO_OF_INPUT_VLS (512) -->
+		<requirement id="36_1">
+			<assertSizeRangeRule variable="Input_Lookup_Table" minRows="0" maxRows="512"
+								 id="36_1"  />
+		</requirement>	
+		<!-- Table must have unique value on PORT_BASE_IDX -->
+		<requirement id="U36">
+			<uniqueTableRule id="U36" variable="Input_Lookup_Table"
+							  iterateAs="ilt"
+							  fromIndex="0" blockLength="size(Input_Lookup_Table)" 
+							  uniqueOn="#ilt.PORT_BASE_IDX" /> 
+		</requirement>	
+		
+		<requirement id="36_2">
+			<crossTableForwardReferencesRule variable="Input_Lookup_Table"
+                                            reference="Input_Port_Table"
+                                            parameter="PORT_BASE_IDX"
+                                            groupSize="8"
+                                            id="36_2" />
+		</requirement>
+	</group>
+	
+    <!-- Input_Port_Table_requirements -->
+	<group id="Input_Port_Table_requirements">
+		
+		<requirement id="37_0">
+	    	<iterate over="Input_Port_Table" as="ilt">
+				<assertEqualRule variable="#ilt.unused"
+								 value="0"
+								 id="37_0" />   
+			</iterate>  
+		</requirement>
+		<!-- The maximum number of rows in the table is defined by the design 
+		parameter G NO OF INPUT PORTS (4096) -->
+		<requirement id="37_1">
+			<assertSizeRangeRule variable="Input_Port_Table" minRows="1" maxRows="4096"
+								 id="37_1"  />
+		</requirement>	
+		
+		<requirement id="37_2">
+			<crossTableInverseReferencesRule variable="Input_Port_Table[index!=0,index!=1,index!=2,index!=3,index!=4,index!=5,index!=6,index!=7]"
+                                                        reference="Input_Lookup_Table"
+                                                        parameter="PORT_BASE_IDX"
+                                                        groupSize="8"
+                                                        id="37_2" />
+		</requirement>
+	</group>
+	<!-- Output_Sub_VL_Table_requirements -->
+	<group id="Output_Sub_VL_Table_requirements">
+		<requirement id="1668132">
+			<crossTableInverseReferencesRule id="1668132" 
+				variable="Output_Sub_VL_Table"
+				reference="Output_Port_Table"
+				parameter="VL_IDX" />
+		</requirement>	
+		
+		<requirement id="41_3">
+	    	<iterate over="Output_Sub_VL_Table[index in Output_Port_Table[PTYPE=0].VL_IDX]" as="opt">
+					<assertEqualRule variable="#opt.unused"
+									 value="0"
+									 id="41_3" >
+					</assertEqualRule>   
+			</iterate>  
+		</requirement>
+		
+
+		
+		<!-- The value should not exceed the constant G_MAX_MAC_PAYLOAD_SIZE (2028) -->
+		<requirement id="41_0">
+	    	<iterate over="Output_Sub_VL_Table[index in Output_Port_Table[PTYPE=0].VL_IDX]" as="opt">
+				<assertRangeRule variable="#opt.MTU"
+								 minValue="0" maxValue="2028"
+								 id="41_0" >
+				</assertRangeRule>   
+			</iterate>  
+		</requirement>
+		
+		<!--The value should be less or equal to the nMaxLen parameter in the Output VL Table -->
+		<requirement id="41_1">
+	    	<iterate over="Output_Sub_VL_Table[index in Output_Port_Table[PTYPE=0].VL_IDX]" as="opt">
+				<assertRangeRule variable="#opt.MTU"
+								 maxValue="Output_VL_Table[#opt.index].nMaxLen"
+								 id="41_1" >
+				</assertRangeRule>   
+			</iterate>  
+		</requirement>
+		
+		<requirement id="41_7">
+	    	<iterate over="Output_Sub_VL_Table[index in Output_Port_Table[PTYPE=1].VL_IDX]" as="opt">
+				<assertEqualRule variable="#opt.unused"
+								 value="0"
+								 id="41_7" >
+				</assertEqualRule>   
+			</iterate>  
+		</requirement>
+		
+		<requirement id="41_6">
+	    	<iterate over="Output_Sub_VL_Table[index in Output_Port_Table[PTYPE=1].VL_IDX]" as="opt">
+				<assertEqualRule variable="#opt.unused_gap"
+								 value="0"
+								 id="41_6" >
+				</assertEqualRule>   
+			</iterate>  
+		</requirement>
+		
+		<!-- The value should not exceed the constant G_MAX_MAC_PAYLOAD_SIZE (2028) -->
+		<requirement id="41_4">
+	    	<iterate over="Output_Sub_VL_Table[index in Output_Port_Table[PTYPE=1].VL_IDX]" as="opt">
+				<assertRangeRule variable="#opt.MTU"
+								 minValue="0" maxValue="2028"
+								 id="41_4" >
+				</assertRangeRule>   
+			</iterate>  
+		</requirement>
+		
+		<!--The value should be less or equal to the nMaxLen parameter in the Output VL Table -->
+		<requirement id="41_5">
+	    	<iterate over="Output_Sub_VL_Table[index in Output_Port_Table[PTYPE=1].VL_IDX]" as="opt">
+				<assertRangeRule variable="#opt.MTU"
+								 maxValue="Output_VL_Table[#opt.index].nMaxLen"
+								 id="41_5" >
+				</assertRangeRule>   
+			</iterate>  
+		</requirement>
+		
+		<requirement id="41_11">
+	    	<iterate over="Output_Sub_VL_Table[index in Output_Port_Table[PTYPE=2].VL_IDX]" as="opt">
+				<assertEqualRule variable="#opt.unused"
+								 value="0"
+								 id="41_11" >
+				</assertEqualRule>   
+			</iterate>  
+		</requirement>
+		
+		<requirement id="41_10">
+	    	<iterate over="Output_Sub_VL_Table[index in Output_Port_Table[PTYPE=2].VL_IDX]" as="opt">
+				<assertEqualRule variable="#opt.unused_gap"
+								 value="0"
+								 id="41_10" >
+				</assertEqualRule>   
+			</iterate>  
+		</requirement>
+		
+		<!-- The value should not exceed the constant G_MAX_MAC_PAYLOAD_SIZE (2028) -->
+		<requirement id="41_8">
+	    	<iterate over="Output_Sub_VL_Table[index in Output_Port_Table[PTYPE=2].VL_IDX]" as="opt">
+				<assertRangeRule variable="#opt.MTU"
+								 minValue="0" maxValue="2028"
+								 id="41_8" >
+				</assertRangeRule>   
+			</iterate>  
+		</requirement>
+		
+		<!--The value should be less or equal to the nMaxLen parameter in the Output VL Table -->
+		<requirement id="41_9">
+	    	<iterate over="Output_Sub_VL_Table[index in Output_Port_Table[PTYPE=2].VL_IDX]" as="opt">
+				<assertRangeRule variable="#opt.MTU"
+								 maxValue="Output_VL_Table[#opt.index].nMaxLen"
+								 id="41_9" >
+				</assertRangeRule>   
+			</iterate>  
+		</requirement>
+		
+		<requirement id="41_15">
+	    	<iterate over="Output_Sub_VL_Table[index in Output_Port_Table[PTYPE=3].VL_IDX]" as="opt">
+				<assertEqualRule variable="#opt.unused"
+								 value="0"
+								 id="41_15" >
+				</assertEqualRule>   
+			</iterate>  
+		</requirement>
+		
+		<requirement id="41_14">
+	    	<iterate over="Output_Sub_VL_Table[index in Output_Port_Table[PTYPE=3].VL_IDX]" as="opt">
+				<assertEqualRule variable="#opt.unused_gap"
+								 value="0"
+								 id="41_14" >
+				</assertEqualRule>   
+			</iterate>  
+		</requirement>
+		
+		<!-- The value should not exceed the constant G_MAX_MAC_PAYLOAD_SIZE (2028) -->
+		<requirement id="41_12">
+	    	<iterate over="Output_Sub_VL_Table[index in Output_Port_Table[PTYPE=3].VL_IDX]" as="opt">
+				<assertRangeRule variable="#opt.MTU"
+								 minValue="0" maxValue="2028"
+								 id="41_12" >
+				</assertRangeRule>   
+			</iterate>  
+		</requirement>
+		
+		<!--The value should be less or equal to the nMaxLen parameter in the Output VL Table -->
+		<requirement id="41_13">
+	    	<iterate over="Output_Sub_VL_Table[index in Output_Port_Table[PTYPE=3].VL_IDX]" as="opt">
+				<assertRangeRule variable="#opt.MTU"
+								 maxValue="Output_VL_Table[#opt.index].nMaxLen"
+								 id="41_13" >
+				</assertRangeRule>     
+			</iterate>  
+		</requirement>
+		
+		<requirement id="41_19">
+	    	<iterate over="Output_Sub_VL_Table[index in Output_Port_Table[PTYPE=4].VL_IDX]" as="opt">
+				<assertEqualRule variable="#opt.unused"
+								 value="0"
+								 id="41_19" >
+				</assertEqualRule>   
+			</iterate>  
+		</requirement>
+		
+		<requirement id="41_18">
+	    	<iterate over="Output_Sub_VL_Table[index in Output_Port_Table[PTYPE=4].VL_IDX]" as="opt">
+				<assertEqualRule variable="#opt.unused_gap"
+								 value="0"
+								 id="41_18" >
+				</assertEqualRule>   
+			</iterate>  
+		</requirement>
+		
+		<!-- The value should not exceed the constant G_MAX_MAC_PAYLOAD_SIZE (2028) -->
+		<requirement id="41_16">
+	    	<iterate over="Output_Sub_VL_Table[index in Output_Port_Table[PTYPE=4].VL_IDX]" as="opt">
+				<assertRangeRule variable="#opt.MTU"
+								 minValue="0" maxValue="2028"
+								 id="41_16" >
+				</assertRangeRule>   
+			</iterate>  
+		</requirement>
+		
+		<!--The value should be less or equal to the nMaxLen parameter in the Output VL Table -->
+		<requirement id="41_17">
+	    	<iterate over="Output_Sub_VL_Table[index in Output_Port_Table[PTYPE=4].VL_IDX]" as="opt">
+				<assertRangeRule variable="#opt.MTU"
+								 maxValue="Output_VL_Table[#opt.index].nMaxLen"
+								 id="41_17" >
+				</assertRangeRule>   
+			</iterate>  
+		</requirement>
+		
+		<requirement id="41_23">
+	    	<iterate over="Output_Sub_VL_Table[index in Output_Port_Table[PTYPE=5].VL_IDX]" as="opt">
+				<assertEqualRule variable="#opt.unused"
+								 value="0"
+								 id="41_23" >
+				</assertEqualRule>   
+			</iterate>  
+		</requirement>
+		
+		<requirement id="41_22">
+	    	<iterate over="Output_Sub_VL_Table[index in Output_Port_Table[PTYPE=5].VL_IDX]" as="opt">
+					<assertEqualRule variable="#opt.unused_gap"
+									 value="0"
+									 id="41_22" >
+					</assertEqualRule>   
+			</iterate>  
+		</requirement>
+		
+		<!-- The value should not exceed the constant G_MAX_MAC_PAYLOAD_SIZE (2028) -->
+		<requirement id="41_20">
+	    	<iterate over="Output_Sub_VL_Table[index in Output_Port_Table[PTYPE=5].VL_IDX]" as="opt">
+				<assertRangeRule variable="#opt.MTU"
+								 minValue="0" maxValue="2028"
+								 id="41_20" >
+				</assertRangeRule>   
+			</iterate>  
+		</requirement>
+		
+		<!--The value should be less or equal to the nMaxLen parameter in the Output VL Table -->
+		<requirement id="41_21">
+	    	<iterate over="Output_Sub_VL_Table[index in Output_Port_Table[PTYPE=5].VL_IDX]" as="opt">
+				<assertRangeRule variable="#opt.MTU"
+								 maxValue="Output_VL_Table[#opt.index].nMaxLen"
+								 id="41_21" >
+				</assertRangeRule>   
+			</iterate>  
+		</requirement>
+		
+		<requirement id="41_26">
+	    	<iterate over="Output_Sub_VL_Table[index in Output_Port_Table[PTYPE=6].VL_IDX]" as="opt">
+				<assertEqualRule variable="#opt.unused"
+								 value="0"
+								 id="41_26" >
+				</assertEqualRule>    
+			</iterate>  
+		</requirement>
+		
+		<!-- The value should not exceed the constant G_MAX_MAC_PAYLOAD_SIZE (2028) -->
+		<requirement id="41_24">
+	    	<iterate over="Output_Sub_VL_Table[index in Output_Port_Table[PTYPE=6].VL_IDX]" as="opt">
+				<assertRangeRule variable="#opt.MTU"
+								 minValue="0" maxValue="2028"
+								 id="41_24" >
+				</assertRangeRule>   
+			</iterate>  
+		</requirement>
+		
+		<!--The value should be less or equal to the nMaxLen parameter in the Output VL Table -->
+		<requirement id="41_25">
+	    	<iterate over="Output_Sub_VL_Table[index in Output_Port_Table[PTYPE=6].VL_IDX]" as="opt">
+					<assertRangeRule variable="#opt.MTU"
+									 maxValue="Output_VL_Table[#opt.index].nMaxLen"
+									 id="41_25" >
+					</assertRangeRule>   
+			</iterate>  
+		</requirement>
+		
+		<requirement id="41_30">
+	    	<iterate over="Output_Sub_VL_Table[index in Output_Port_Table[PTYPE=6].VL_IDX]" as="opt">
+				<assertEqualRule variable="#opt.unused"
+								 value="0"
+								 id="41_30" >
+				</assertEqualRule>   
+			</iterate>  
+		</requirement>
+		
+		<requirement id="41_29">
+	    	<iterate over="Output_Sub_VL_Table[index in Output_Port_Table[PTYPE=7].VL_IDX]" as="opt">
+				<assertEqualRule variable="#opt.unused_gap"
+								 value="0"
+								 id="41_29" >
+				</assertEqualRule>   
+			</iterate>  
+		</requirement>
+		
+		<!-- The value should not exceed the constant G_MAX_MAC_PAYLOAD_SIZE (2028) -->
+		<requirement id="41_27">
+	    	<iterate over="Output_Sub_VL_Table[index in Output_Port_Table[PTYPE=7].VL_IDX]" as="opt">
+				<assertRangeRule variable="#opt.MTU"
+								 minValue="0" maxValue="2028"
+								 id="41_27" >
+				</assertRangeRule>   
+			</iterate>  
+		</requirement>
+		
+		<!--The value should be less or equal to the nMaxLen parameter in the Output VL Table -->
+		<requirement id="41_28">
+	    	<iterate over="Output_Sub_VL_Table[index in Output_Port_Table[PTYPE=7].VL_IDX]" as="opt">
+				<assertRangeRule variable="#opt.MTU"
+								 maxValue="Output_VL_Table[#opt.index].nMaxLen"
+								 id="41_28" >
+				</assertRangeRule>   
+			</iterate>  
+		</requirement>
+		
+		<!-- Foreign KEY -->
+		<!-- This is covered with cross reference rules -->
+<!-- 		<requirement id="41_31"> -->
+<!-- 	    	<iterate over="Output_Port_Table" as="opt"> -->
+<!-- 		    	<iterate over="Unicast_UDP_COM_Port" as="uucp"> -->
+<!-- 					<assertEqualRule variable="#uucp.index" -->
+<!-- 									 value="#opt.VL_IDX" -->
+<!-- 									 id="41_31" />    -->
+<!-- 				</iterate>   -->
+<!-- 			</iterate>   -->
+<!-- 		</requirement> -->
+	</group>
+	
+	
+	
+    <!-- PHY_Parameters_requirements -->
+	<group id="PHY_Parameters_requirements">
+		
+		<requirement id="77_9">
+	    	<iterate over="PHY_Parameters" as="pp">
+				<assertEqualRule variable="#pp.unused"
+								 value="0"
+								 id="77_9" />   
+			</iterate>  
+		</requirement>
+		<!-- b11 (reserved) – reserved; link is reported as down -->
+		<requirement id="77_8">
+	    	<iterate over="PHY_Parameters" as="pp">
+				<assertRangeRule variable="#pp.Port_LINK_SOURCE[0]"
+								 minValue="0" maxValue="2"
+								 id="77_8_1" />
+				<assertRangeRule variable="#pp.Port_LINK_SOURCE[1]"
+								 minValue="0" maxValue="2"
+								 id="77_8_2" />
+				<assertRangeRule variable="#pp.Port_LINK_SOURCE[2]"
+								 minValue="0" maxValue="2"
+								 id="77_8_3" />   
+			</iterate>  
+		</requirement>
+		<!-- b100, b101, b110 (reserved) – reserved values, may not be used -->
+		<requirement id="77_15">
+	    	<iterate over="PHY_Parameters" as="pp">
+				<elementNotExistsInListRule element="4"
+								 			list="#pp.Port_AN_MODE"
+								 			id="77_15_1" />
+				<elementNotExistsInListRule element="5"
+								 			list="#pp.Port_AN_MODE"
+								 			id="77_15_2" />
+				<elementNotExistsInListRule element="6"
+								 			list="#pp.Port_AN_MODE"
+								 			id="77_15_3" />   
+			</iterate>  
+		</requirement>
+		<!-- b101–b111 Reserved -->
+		<requirement id="77_6">
+	    	<iterate over="PHY_Parameters" as="pp">
+				<assertRangeRule variable="#pp.Port_INTERFACE_TYPE[0]"
+								 minValue="0" maxValue="4" 
+								 id="77_6_1" />
+				<assertRangeRule variable="#pp.Port_INTERFACE_TYPE[1]"
+								 minValue="0" maxValue="4" 
+								 id="77_6_2" />				 
+				<assertRangeRule variable="#pp.Port_INTERFACE_TYPE[2]"
+								 minValue="0" maxValue="4" 
+								 id="77_6_3" />   
+			</iterate>  
+		</requirement>
+
+	</group>
+	<!-- global requirements -->
+	<group id="global_requirements">
+		<!-- The user must provide the same number of entries for the 
+		IC/RM Table as for the Input VL Lookup Table -->
+		<requirement id="1602292">
+			<assertEqualRule id="1602292" variable="size(IC_RM_Table)" 
+				value="size(Input_VL_Lookup_Table)"/>
+		</requirement>
+		<!-- Input VL Lookup Table and Input Lookup Table must have the same number of entries -->
+		<requirement id="ss2">
+			<assertEqualRule id="ss2" variable="size(Input_VL_Lookup_Table)" 
+				value="size(Input_Lookup_Table)"/>
+		</requirement>
+		<!-- Each row defines exactly one sub-VL and matches the sub-VL definitions in MAC layer -->
+		<requirement id="1">
+			<assertEqualRule id="1" variable="size(Output_VL_Table)" 
+				value="size(Output_Sub_VL_Table)"/>
+		</requirement>
+		<!-- checksum requirement -->
+<!-- 		<requirement id="2"> -->
+<!-- 			<checksumRule id="2" class="ChecksumCheck" /> -->
+<!-- 		</requirement> -->
+		<!-- check if block id is valid -->
+<!-- 		<requirement id="3"> -->
+<!-- 			<assertClassRule id="3" class="ValidBlockIdCheck" description="check if block id is valid"/> -->
+<!-- 		</requirement> -->
+		<!-- Check if device ID is valid -->
+<!-- 		<requirement id="4"> -->
+<!-- 			<assertClassRule id="4" class="DeviceIdCheck" description="Check if device ID is valid"/> -->
+<!-- 		</requirement> -->
+		<!-- No data after global CRC -->
+<!-- 		<requirement id="5"> -->
+<!-- 			<assertClassRule id="5" class="NoDataAfterGlobalCRC" description="No data after global CRC "/> -->
+<!-- 		</requirement> -->
+		<!-- Footer data must be all zeroes -->
+<!-- 		<requirement id="6"> -->
+<!-- 			<assertClassRule id="6" class="FooterDataAllZeroes" description="Footer data must be all zeroes"/> -->
+<!-- 		</requirement>  -->
+	</group>	
+</verification>

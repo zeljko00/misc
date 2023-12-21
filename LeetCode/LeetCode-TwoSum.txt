@@ -1,0 +1,13 @@
+class Solution(object):
+    def twoSum(self, nums, target):
+        half=len(nums)/2
+        end=len(nums)
+        for index_first in range(half):
+            index_stop=end-index_first-1
+            if nums[index_stop]+nums[index_first]==target:
+                    return [index_first,index_stop]
+            for index_second in range(index_first+1,index_stop):
+                if nums[index_first]+nums[index_second]==target:
+                    return [index_first,index_second]
+                if nums[index_stop]+nums[index_second]==target:
+                    return [index_second,index_stop] 

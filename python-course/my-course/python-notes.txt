@@ -1,0 +1,2 @@
+On Unix, the Python 3.x interpreter is by default not installed with the executable named python,
+so that it does not conflict with a simultaneously installed Python 2.x executable.
