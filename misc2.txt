@@ -29,3 +29,4 @@ jastuk:		-penny:  20km   https://pennyshop.ba/shop/proizvod/master-jastuk-za-led
 		-jysk:   18km   https://jysk.ba/spavaca-soba/jastuci/specijalni-jastuci/jastuk-za-vrat-wellpur-alesund-13x25x11
 			 30km   https://jysk.ba/spavaca-soba/jastuci/specijalni-jastuci/jast-za-koljena-wellpur-ommane-15x25x20
 			 35km   https://jysk.ba/spavaca-soba/jastuci/specijalni-jastuci/jastuk-wellpur-rygge-34x36x12/6
+punjac:         
