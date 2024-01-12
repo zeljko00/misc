@@ -1,0 +1,31 @@
+powerbank:
+		-xiaomi: 50km	https://mistore.ba/proizvod/xiaomi-20000mah-redmi-18w-fast-charge-pb-black/
+		-planet: 65km   https://planet.ba/punjaci/299-xiaomi-power-bank-20000-mah-18w-brzo-punjenje.html
+			 50km   https://planet.ba/punjaci/912-xiaomi-power-bank-3-10000-mah-ultra-compact.html 1000mAh
+		-mobis:  45km   https://mobishop.ba/en/product/power-bank-xiaomi-3-ultra-compact-10000-mah/ 1000mAh
+
+zvucnik:	-xiaomi: 90km   https://mistore.ba/proizvod/xiaomi-mi-bt-zvucnik-16w-crni/
+		-planet: 75km   https://planet.ba/bluetooth-zvucnici/771-xiaomi-mi-portable-bluetooth-speaker-16w-crni.html
+		-giga:   88km   https://giga.ba/article/17142/zvu%C4%8Dnik-xiaomi-mi-bt-zvu%C4%8Dnik-16w-ipx7-qbh4195gl
+		-mobis  79km   https://mobishop.ba/en/product/xiaomi-mi-portable-bluetooth-speaker-16w-blue/
+
++mis:		-start:  51km   https://www.startshop.ba/bs/trust-bayo-ergo-bezicni-miseco
+
+tastatura:	-giga:   71km   https://giga.ba/article/47269/tastatura-asus-marshmallow-kw100-green-wireless
+			 71km   https://giga.ba/article/54215/tastatura-rampage-rebel-black-mechanical-low-us
+		-didakta:66km   https://didakta.ba/proizvodi/periferija/tastature/asus-marshmallow-keyboard-kw100-21411
+
+
+slusalice:	-start:  63km   https://www.startshop.ba/bs/philips-tah4205bl-slusalice
+			 90km   https://www.startshop.ba/bs/philips-tah5205bk-bt-slusalicetipka-bass-zvucnik-40mmbaterija-do-29h-domet-10m-boja-crna
+			 104km  https://www.startshop.ba/bs/sony-bezicne-slusalice-ch520
+		-didkta: 80km   https://didakta.ba/proizvodi/periferija/slusalice/slusalice-sony-ch510-bezicne-15659
+		-mobis:  75km   https://mobishop.ba/en/product/jbl-bt900-bluetooth-slusalice-blue/
+			 69km   https://mobishop.ba/en/product/jbl-bt910-bluetooth-slusalice-blue/
+
+stick:		-start:  33km   https://www.startshop.ba/bs/kingston-fd-256gb-onyx
+
+jastuk:		-penny:  20km   https://pennyshop.ba/shop/proizvod/master-jastuk-za-leda-35x35x12cm-1073/197231
+		-jysk:   18km   https://jysk.ba/spavaca-soba/jastuci/specijalni-jastuci/jastuk-za-vrat-wellpur-alesund-13x25x11
+			 30km   https://jysk.ba/spavaca-soba/jastuci/specijalni-jastuci/jast-za-koljena-wellpur-ommane-15x25x20
+			 35km   https://jysk.ba/spavaca-soba/jastuci/specijalni-jastuci/jastuk-wellpur-rygge-34x36x12/6
