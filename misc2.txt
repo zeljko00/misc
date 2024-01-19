@@ -25,8 +25,7 @@ slusalice:	-start:  63km   https://www.startshop.ba/bs/philips-tah4205bl-slusali
 
 stick:		-start:  33km   https://www.startshop.ba/bs/kingston-fd-256gb-onyx
 
-jastuk:		-penny:  20km   https://pennyshop.ba/shop/proizvod/master-jastuk-za-leda-35x35x12cm-1073/197231
-		-jysk:   18km   https://jysk.ba/spavaca-soba/jastuci/specijalni-jastuci/jastuk-za-vrat-wellpur-alesund-13x25x11
+jastuk:		-jysk:   18km   https://jysk.ba/spavaca-soba/jastuci/specijalni-jastuci/jastuk-za-vrat-wellpur-alesund-13x25x11
 			 30km   https://jysk.ba/spavaca-soba/jastuci/specijalni-jastuci/jast-za-koljena-wellpur-ommane-15x25x20
 			 +35km   https://jysk.ba/spavaca-soba/jastuci/specijalni-jastuci/jastuk-wellpur-rygge-34x36x12/6
 punjac:         
