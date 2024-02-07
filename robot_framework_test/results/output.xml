@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot generator="Robot 6.1.1 (Python 3.12.1 on win32)" generated="20240115 14:56:37.811" rpa="false" schemaversion="4">
+<suite id="s1" name="TestSuit01" source="C:\Users\ztripic\Documents\vsc_workspace\robot_framework_test\tests\smoke_tests\TestSuit01.robot">
+<kw name="Test Suit Setup" library="keywords01" type="SETUP">
+<kw name="Log" library="BuiltIn">
+<arg>Setting everything up for test suite!</arg>
+<doc>Logs the given message with the given level.</doc>
+<msg timestamp="20240115 14:56:37.839" level="INFO">Setting everything up for test suite!</msg>
+<status status="PASS" starttime="20240115 14:56:37.839" endtime="20240115 14:56:37.839"/>
+</kw>
+<status status="PASS" starttime="20240115 14:56:37.839" endtime="20240115 14:56:37.839"/>
+</kw>
+<test id="s1-t1" name="TestoCase01" line="26">
+<kw name="Test Case Setup" library="keywords01" type="SETUP">
+<arg>blabla</arg>
+<kw name="Log" library="BuiltIn">
+<arg>Setting everything up for test case:${test}!</arg>
+<doc>Logs the given message with the given level.</doc>
+<msg timestamp="20240115 14:56:37.840" level="INFO">Setting everything up for test case:blabla!</msg>
+<status status="PASS" starttime="20240115 14:56:37.840" endtime="20240115 14:56:37.840"/>
+</kw>
+<status status="PASS" starttime="20240115 14:56:37.840" endtime="20240115 14:56:37.840"/>
+</kw>
+<kw name="Prepare List" library="keywords01">
+<var>@{list}</var>
+<arg>apple</arg>
+<arg>bannana</arg>
+<arg>pear</arg>
+<arg>grapes</arg>
+<doc>Creates new list and inserts specified elements!</doc>
+<kw name="Create List" library="BuiltIn">
+<var>@{list}</var>
+<arg>@{items}</arg>
+<doc>Returns a list containing given items.</doc>
+<msg timestamp="20240115 14:56:37.841" level="INFO">@{list} = [ apple | bannana | pear | grapes ]</msg>
+<status status="PASS" starttime="20240115 14:56:37.841" endtime="20240115 14:56:37.841"/>
+</kw>
+<msg timestamp="20240115 14:56:37.841" level="INFO">@{list} = [ apple | bannana | pear | grapes ]</msg>
+<status status="PASS" starttime="20240115 14:56:37.841" endtime="20240115 14:56:37.841"/>
+</kw>
+<kw name="Append To List" library="Collections">
+<arg>${list}</arg>
+<arg>yoghurt</arg>
+<arg>milk</arg>
+<doc>Adds ``values`` to the end of ``list``.</doc>
+<status status="PASS" starttime="20240115 14:56:37.841" endtime="20240115 14:56:37.842"/>
+</kw>
+<kw name="Containes">
+<arg>${list}</arg>
+<arg>${key}</arg>
+<kw name="List Should Contain Value" library="Collections">
+<arg>${list}</arg>
+<arg>${value}</arg>
+<arg>msg=Does not contain specified value!</arg>
+<doc>Fails if the ``value`` is not found from ``list``.</doc>
+<status status="PASS" starttime="20240115 14:56:37.842" endtime="20240115 14:56:37.842"/>
+</kw>
+<status status="PASS" starttime="20240115 14:56:37.842" endtime="20240115 14:56:37.842"/>
+</kw>
+<kw name="Test Case Teardown" library="keywords01" type="TEARDOWN">
+<kw name="Log" library="BuiltIn">
+<arg>Cleaning up after test case!</arg>
+<doc>Logs the given message with the given level.</doc>
+<msg timestamp="20240115 14:56:37.843" level="INFO">Cleaning up after test case!</msg>
+<status status="PASS" starttime="20240115 14:56:37.843" endtime="20240115 14:56:37.843"/>
+</kw>
+<status status="PASS" starttime="20240115 14:56:37.843" endtime="20240115 14:56:37.843"/>
+</kw>
+<doc>My 1st test in Robot framework!
+Rest of documentation...</doc>
+<tag>success</tag>
+<status status="PASS" starttime="20240115 14:56:37.840" endtime="20240115 14:56:37.843"/>
+</test>
+<test id="s1-t2" name="TestoCase02" line="37">
+<kw name="Default Setup" library="keywords01" type="SETUP">
+<kw name="Log" library="BuiltIn">
+<arg>Setting everything up!</arg>
+<doc>Logs the given message with the given level.</doc>
+<msg timestamp="20240115 14:56:37.845" level="INFO">Setting everything up!</msg>
+<status status="PASS" starttime="20240115 14:56:37.844" endtime="20240115 14:56:37.845"/>
+</kw>
+<status status="PASS" starttime="20240115 14:56:37.844" endtime="20240115 14:56:37.845"/>
+</kw>
+<kw name="Prepare List" library="keywords01">
+<var>@{list}</var>
+<arg>apple</arg>
+<arg>bannana</arg>
+<arg>pear</arg>
+<arg>grapes</arg>
+<doc>Creates new list and inserts specified elements!</doc>
+<kw name="Create List" library="BuiltIn">
+<var>@{list}</var>
+<arg>@{items}</arg>
+<doc>Returns a list containing given items.</doc>
+<msg timestamp="20240115 14:56:37.845" level="INFO">@{list} = [ apple | bannana | pear | grapes ]</msg>
+<status status="PASS" starttime="20240115 14:56:37.845" endtime="20240115 14:56:37.845"/>
+</kw>
+<msg timestamp="20240115 14:56:37.845" level="INFO">@{list} = [ apple | bannana | pear | grapes ]</msg>
+<status status="PASS" starttime="20240115 14:56:37.845" endtime="20240115 14:56:37.845"/>
+</kw>
+<kw name="Append To List" library="Collections">
+<arg>${list}</arg>
+<arg>yoghurt</arg>
+<arg>milk</arg>
+<doc>Adds ``values`` to the end of ``list``.</doc>
+<status status="PASS" starttime="20240115 14:56:37.846" endtime="20240115 14:56:37.846"/>
+</kw>
+<kw name="Containes">
+<arg>${list}</arg>
+<arg>key</arg>
+<kw name="List Should Contain Value" library="Collections">
+<arg>${list}</arg>
+<arg>${value}</arg>
+<arg>msg=Does not contain specified value!</arg>
+<doc>Fails if the ``value`` is not found from ``list``.</doc>
+<msg timestamp="20240115 14:56:37.846" level="FAIL">Does not contain specified value!</msg>
+<status status="FAIL" starttime="20240115 14:56:37.846" endtime="20240115 14:56:37.846"/>
+</kw>
+<status status="FAIL" starttime="20240115 14:56:37.846" endtime="20240115 14:56:37.846"/>
+</kw>
+<kw name="Default Teardown" library="keywords01" type="TEARDOWN">
+<kw name="Log" library="BuiltIn">
+<arg>Cleaning up!</arg>
+<doc>Logs the given message with the given level.</doc>
+<msg timestamp="20240115 14:56:37.847" level="INFO">Cleaning up!</msg>
+<status status="PASS" starttime="20240115 14:56:37.847" endtime="20240115 14:56:37.847"/>
+</kw>
+<status status="PASS" starttime="20240115 14:56:37.847" endtime="20240115 14:56:37.847"/>
+</kw>
+<doc>My 2nd test in Robot framework!
+Rest of documentation...</doc>
+<tag>fail</tag>
+<status status="FAIL" starttime="20240115 14:56:37.844" endtime="20240115 14:56:37.847">Does not contain specified value!</status>
+</test>
+<kw name="Test Suit Teardown" library="keywords01" type="TEARDOWN">
+<kw name="Log" library="BuiltIn">
+<arg>Cleaning up after test suite!</arg>
+<doc>Logs the given message with the given level.</doc>
+<msg timestamp="20240115 14:56:37.848" level="INFO">Cleaning up after test suite!</msg>
+<status status="PASS" starttime="20240115 14:56:37.848" endtime="20240115 14:56:37.848"/>
+</kw>
+<status status="PASS" starttime="20240115 14:56:37.848" endtime="20240115 14:56:37.848"/>
+</kw>
+<doc>My first .robot file!</doc>
+<status status="FAIL" starttime="20240115 14:56:37.813" endtime="20240115 14:56:37.848"/>
+</suite>
+<statistics>
+<total>
+<stat pass="1" fail="1" skip="0">All Tests</stat>
+</total>
+<tag>
+<stat pass="0" fail="1" skip="0">fail</stat>
+<stat pass="1" fail="0" skip="0">success</stat>
+</tag>
+<suite>
+<stat pass="1" fail="1" skip="0" id="s1" name="TestSuit01">TestSuit01</stat>
+</suite>
+</statistics>
+<errors>
+</errors>
+</robot>
